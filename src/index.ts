@@ -1,8 +1,7 @@
 /**
  * Forge — Personal Development Workflow Extension
  *
- * Role-based AI personas for each stage of the dev workflow, plus safety guards
- * for protected project directories.
+ * Role-based AI personas for each stage of the dev workflow.
  *
  * Commands:
  *   /role [name]   Switch the active role (or list available roles)
@@ -10,27 +9,10 @@
  *
  * Roles: none, tech-lead, architect, spec, implementer, frontend, db,
  *        devops, docs, reviewer, auditor, tester, planner
- *
- * Protected directories (bash confirm):
- *   ~/dev, ~/Projects
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
-import * as nodePath from "node:path";
-import * as os from "node:os";
 import { ROLES, DEFAULT_ROLE, ROLE_KEYS, type RoleDef } from "./roles.js";
-
-// ─── Protected directories ────────────────────────────────────────────────────
-
-const PROTECTED_DIRS = [
-  nodePath.join(os.homedir(), "dev"),
-  nodePath.join(os.homedir(), "Projects"),
-];
-
-function isProtectedCwd(cwd: string): boolean {
-  return PROTECTED_DIRS.some((d) => cwd === d || cwd.startsWith(d + nodePath.sep));
-}
 
 // ─── Extension state ──────────────────────────────────────────────────────────
 
@@ -92,24 +74,6 @@ export default function (pi: ExtensionAPI) {
     };
   });
 
-  // ── Safety guards ────────────────────────────────────────────────────────────
-  pi.on("tool_call", async (event, ctx) => {
-    if (!ctx.hasUI) return; // non-interactive — no UI to confirm with
-
-    // Bash: confirm when CWD is inside a protected directory
-    if (isToolCallEventType("bash", event)) {
-      if (isProtectedCwd(ctx.cwd)) {
-        const ok = await ctx.ui.confirm(
-          "Allow bash command?",
-          event.input.command,
-        );
-        if (!ok) return { block: true, reason: "Blocked by forge: user declined" };
-      }
-      return;
-    }
-
-  });
-
   // ── /role command ─────────────────────────────────────────────────────────────
   pi.registerCommand("role", {
     description: "Switch the active role, or show available roles",
@@ -163,16 +127,12 @@ export default function (pi: ExtensionAPI) {
     description: "Show forge extension status",
     handler: async (_args, ctx) => {
       const role = ROLES[activeRole];
-      const protectedList = PROTECTED_DIRS.join(", ");
       ctx.ui.notify(
         [
           `⚒  forge`,
           ``,
           `Active role:   ${role.label}`,
           `               ${role.description}`,
-          ``,
-          `Protected dirs (bash confirm):`,
-          `  ${protectedList}`,
           ``,
           `Commands:`,
           `  /role [name]   switch role`,

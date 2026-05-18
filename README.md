@@ -1,8 +1,7 @@
 # pi-forge
 
 A [Pi](https://github.com/earendil-works/pi-coding-agent) extension that brings
-role-based AI personas to your dev workflow, plus confirmation guards for
-writes and shell commands in your project directories.
+role-based AI personas to your dev workflow.
 
 Switch roles to steer the model's behavior for the task at hand — planning,
 architecture, implementation, review, and so on — without leaving Pi or
@@ -21,7 +20,7 @@ managing separate sessions.
 Clone the repo:
 
 ```bash
-git clone https://github.com/callen/pi-forge.git ~/dev/pi-forge
+git clone https://github.com/crallen/pi-forge.git ~/dev/pi-forge
 ```
 
 Add it to your Pi settings (`~/.pi/agent/settings.json`):
@@ -53,7 +52,7 @@ Tab completion works for role names.
 
 ### `/forge`
 
-Show extension status: active role and protected directories.
+Show extension status: active role.
 
 ---
 
@@ -78,19 +77,6 @@ Show extension status: active role and protected directories.
 The active role is shown in the Pi footer: `⚒ forge · Role Name`.
 
 Role selection persists across `/reload` and session restarts.
-
----
-
-## Safety guards
-
-Forge prompts for confirmation before Pi runs a bash command when the working
-directory is inside a protected path.
-
-The defaults are `~/dev` and `~/Projects`. To change them, edit `PROTECTED_DIRS`
-in `src/index.ts`.
-
-The guard is skipped in non-interactive mode (e.g. `pi --print`) where there is
-no UI to confirm with.
 
 ---
 
