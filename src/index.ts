@@ -11,7 +11,7 @@
  * Roles: none, tech-lead, architect, spec, implementer, frontend, db,
  *        devops, docs, reviewer, auditor, tester, planner
  *
- * Protected directories (bash confirm + edit confirm):
+ * Protected directories (bash confirm):
  *   ~/dev, ~/Projects
  */
 
@@ -30,13 +30,6 @@ const PROTECTED_DIRS = [
 
 function isProtectedCwd(cwd: string): boolean {
   return PROTECTED_DIRS.some((d) => cwd === d || cwd.startsWith(d + nodePath.sep));
-}
-
-function isProtectedFilePath(filePath: string): boolean {
-  const resolved = filePath.startsWith("~/")
-    ? nodePath.join(os.homedir(), filePath.slice(2))
-    : filePath;
-  return PROTECTED_DIRS.some((d) => resolved === d || resolved.startsWith(d + nodePath.sep));
 }
 
 // ─── Extension state ──────────────────────────────────────────────────────────
@@ -115,29 +108,6 @@ export default function (pi: ExtensionAPI) {
       return;
     }
 
-    // Write: confirm when target path is inside a protected directory
-    if (isToolCallEventType("write", event)) {
-      if (isProtectedFilePath(event.input.path)) {
-        const ok = await ctx.ui.confirm(
-          "Allow write?",
-          event.input.path,
-        );
-        if (!ok) return { block: true, reason: "Blocked by forge: write not approved" };
-      }
-      return;
-    }
-
-    // Edit: confirm when target path is inside a protected directory
-    if (isToolCallEventType("edit", event)) {
-      if (isProtectedFilePath(event.input.path)) {
-        const ok = await ctx.ui.confirm(
-          "Allow edit?",
-          event.input.path,
-        );
-        if (!ok) return { block: true, reason: "Blocked by forge: edit not approved" };
-      }
-      return;
-    }
   });
 
   // ── /role command ─────────────────────────────────────────────────────────────
@@ -201,7 +171,7 @@ export default function (pi: ExtensionAPI) {
           `Active role:   ${role.label}`,
           `               ${role.description}`,
           ``,
-          `Protected dirs (bash confirm + edit confirm):`,
+          `Protected dirs (bash confirm):`,
           `  ${protectedList}`,
           ``,
           `Commands:`,

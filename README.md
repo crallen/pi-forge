@@ -83,15 +83,13 @@ Role selection persists across `/reload` and session restarts.
 
 ## Safety guards
 
-Forge prompts for confirmation before Pi can:
-
-- **Run a bash command** when the working directory is inside a protected path
-- **Write or edit a file** whose path is inside a protected path
+Forge prompts for confirmation before Pi runs a bash command when the working
+directory is inside a protected path.
 
 The defaults are `~/dev` and `~/Projects`. To change them, edit `PROTECTED_DIRS`
 in `src/index.ts`.
 
-Guards are skipped in non-interactive mode (e.g. `pi --print`) where there is
+The guard is skipped in non-interactive mode (e.g. `pi --print`) where there is
 no UI to confirm with.
 
 ---
