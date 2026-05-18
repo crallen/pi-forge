@@ -1,16 +1,30 @@
 # pi-forge
 
-Personal development workflow extension for [Pi](https://github.com/earendil-works/pi-coding-agent).
+A [Pi](https://github.com/earendil-works/pi-coding-agent) extension that brings
+role-based AI personas to your dev workflow, plus confirmation guards for
+writes and shell commands in your project directories.
 
-Provides role-based AI personas for each stage of the dev workflow, plus safety
-guards for protected project directories.
+Switch roles to steer the model's behavior for the task at hand — planning,
+architecture, implementation, review, and so on — without leaving Pi or
+managing separate sessions.
+
+---
+
+## Requirements
+
+- [Pi](https://github.com/earendil-works/pi-coding-agent) coding agent
 
 ---
 
 ## Install
 
-Clone or move this repo anywhere, then add the path to your Pi settings
-(`~/.pi/agent/settings.json`):
+Clone the repo:
+
+```bash
+git clone https://github.com/callen/pi-forge.git ~/dev/pi-forge
+```
+
+Add it to your Pi settings (`~/.pi/agent/settings.json`):
 
 ```json
 {
@@ -18,8 +32,7 @@ Clone or move this repo anywhere, then add the path to your Pi settings
 }
 ```
 
-Pi reads the `pi.extensions` field in `package.json` to find the entry point.
-No compilation step needed — Pi loads TypeScript directly via jiti.
+No build step needed. Pi loads TypeScript directly.
 
 ---
 
@@ -27,15 +40,16 @@ No compilation step needed — Pi loads TypeScript directly via jiti.
 
 ### `/role [name]`
 
-Switch the active role, or show available roles if no name is given.
+Switch the active role. Run with no argument to see what's available and
+what's currently active.
 
 ```
-/role             — list all roles and show the active one
-/role tech-lead   — switch to Tech Lead
+/role             — list roles, show active one
+/role architect   — switch to Architect
 /role none        — clear role, use Pi's default behavior
 ```
 
-Tab completion is available for role names.
+Tab completion works for role names.
 
 ### `/forge`
 
@@ -45,21 +59,21 @@ Show extension status: active role and protected directories.
 
 ## Roles
 
-| Name | Description |
+| Name | What it does |
 |---|---|
-| `none` | No role — Pi's default behavior |
-| `tech-lead` | Orchestrates complex workflows; coordinates specialist roles |
+| `none` | Pi's default behavior, no persona applied |
+| `tech-lead` | Breaks down complex requests, coordinates specialist roles |
 | `architect` | High-level design, patterns, ADRs — no implementation code |
-| `spec` | Transforms vague requests into precise requirements and acceptance criteria |
-| `implementer` | Precise backend coding with strict scope adherence |
-| `frontend` | UI components, styling, accessibility, responsive design |
-| `db` | Schema design, migrations, query optimization, indexing |
+| `spec` | Turns vague requests into requirements with acceptance criteria |
+| `implementer` | Precise backend coding, strict scope adherence |
+| `frontend` | Components, styling, accessibility, responsive design |
+| `db` | Schema design, migrations, query optimization |
 | `devops` | CI/CD, Docker, Kubernetes/Helm, infrastructure-as-code |
-| `docs` | Technical documentation with relaxed, concise style |
-| `reviewer` | Read-only code quality review with actionable findings |
+| `docs` | Concise technical documentation with a relaxed tone |
+| `reviewer` | Read-only code quality review with classified findings |
 | `auditor` | Read-only security review with severity classification |
 | `tester` | Test coverage: writing, executing, diagnosing failures |
-| `planner` | Breaks overwhelming complexity into time-boxed sequential tasks |
+| `planner` | Breaks overwhelming work into time-boxed sequential tasks |
 
 The active role is shown in the Pi footer: `⚒ forge · Role Name`.
 
@@ -69,28 +83,22 @@ Role selection persists across `/reload` and session restarts.
 
 ## Safety guards
 
-Forge requires explicit confirmation before Pi can:
+Forge prompts for confirmation before Pi can:
 
 - **Run a bash command** when the working directory is inside a protected path
 - **Write or edit a file** whose path is inside a protected path
 
-Protected paths (matching your `~/dev` and `~/Projects` workflow):
+The defaults are `~/dev` and `~/Projects`. To change them, edit `PROTECTED_DIRS`
+in `src/index.ts`.
 
-```
-~/dev
-~/Projects
-```
-
-Edit `PROTECTED_DIRS` in `src/index.ts` to change them.
-
-Guards are skipped in non-interactive mode (e.g., `pi --print`) where there is
+Guards are skipped in non-interactive mode (e.g. `pi --print`) where there is
 no UI to confirm with.
 
 ---
 
 ## Adding a role
 
-Add an entry to the `ROLES` object in `src/roles.ts`:
+Add an entry to `ROLES` in `src/roles.ts`:
 
 ```typescript
 "my-role": {
@@ -101,3 +109,9 @@ Add an entry to the `ROLES` object in `src/roles.ts`:
 ```
 
 Then `/reload` in Pi to pick up the change.
+
+---
+
+## License
+
+MIT
