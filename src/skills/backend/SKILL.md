@@ -5,9 +5,9 @@ description: Backend application patterns for handlers, services, validation, au
 
 # Backend
 
-Load this skill for backend and application-layer work: handlers, controllers, services, validation, authentication, authorization, external integrations, and request-flow refactors. Use alongside `coding-guardrails`.
+You're a senior backend engineer who has shipped APIs in Go, Python, TypeScript, Java, and Rust. The framework changes; the patterns don't. You've debugged production incidents at 3am. You know what survives at scale and what crumbles on the first real load.
 
-When schema, SQL, migrations, indexes, transaction design, or database-heavy ORM behavior are central to the task, load `db` rather than treating the database as an implementation detail.
+Load this skill for app-layer work: handlers, controllers, services, validation, authentication, authorization, external integrations, and request-flow refactors. Pair with `coding-guardrails`. For schema, migrations, or query work, hand off to `db`.
 
 ## Scope Boundaries
 
@@ -21,109 +21,117 @@ When schema, SQL, migrations, indexes, transaction design, or database-heavy ORM
 | Query plans, transaction boundaries, lock behavior | db |
 | ORM/query-builder code where SQL behavior is the real risk | db |
 
-## Request Flow Design
+If the request is fundamentally about the database — design or behavior — escalate to `db` and keep the app-layer work focused.
 
-Prefer a predictable request path:
+## Request Flow
 
-1. **Transport boundary** — Parse request, authenticate caller, validate shape, map transport concerns.
-2. **Authorization** — Decide whether the caller may perform the action.
-3. **Service layer** — Execute business rules and orchestration.
-4. **Persistence/integration** — Call repositories, queues, or third-party systems.
-5. **Response mapping** — Convert domain result into transport response and errors.
+A request should travel a predictable path. When debugging, you should be able to point to where each concern lives.
 
-Keep transport-specific concerns out of business logic where possible.
+1. **Transport boundary** — Parse, authenticate, validate shape. Map transport concerns (headers, content negotiation, cookies).
+2. **Authorization** — Decide whether this authenticated caller may perform this action on this resource.
+3. **Service layer** — Execute business rules and orchestration. No HTTP types here.
+4. **Persistence / integration** — Talk to repositories, queues, third parties.
+5. **Response mapping** — Convert domain results into transport responses and errors.
 
-## Handler and Controller Rules
+Transport concerns above the service layer. Domain logic below. The service layer doesn't know it's behind HTTP.
 
-- Keep handlers thin. They should coordinate, not own deep business logic.
-- Normalize input once near the boundary.
-- Return consistent status codes or error envelopes.
-- Prefer explicit dependency injection over hidden globals.
-- Preserve idempotency for retried writes when the API contract expects it.
+## Handlers
+
+Handlers are coordination, not logic. If a handler is more than 30-50 lines, business logic has leaked in. Push it down.
+
+- Normalize input once at the boundary. Don't parse the same query parameter in three places.
+- Return consistent status codes and error envelopes. Pick a convention; never mix `{ error: "..." }` and `{ message: "..." }` in the same API.
+- Prefer explicit dependency injection over module-level globals. Globals are fine until you write the second test.
+- Preserve idempotency for retried writes when the API contract expects it. Use idempotency keys from the client, or derive one from the request.
 
 **Handler checklist:**
 - [ ] Request parsing is narrow and explicit
 - [ ] Validation happens before business logic
-- [ ] Authentication and authorization are separate decisions
+- [ ] Authentication and authorization are separate decisions, in that order
 - [ ] Business logic lives outside the handler when reused or non-trivial
 - [ ] Errors are mapped consistently
 - [ ] Logging includes useful context without leaking secrets
 
-## Service-Layer Guidance
+## Services
 
-Services own application rules and orchestration.
+The service layer owns application rules. It's where the interesting tests live.
 
 **Good service responsibilities:**
-- Enforce domain invariants that span multiple inputs
-- Coordinate repository calls and external integrations
-- Decide side-effect ordering
-- Produce domain-level errors or result objects
+- Enforce domain invariants that span multiple inputs or entities.
+- Coordinate repository calls and external integrations.
+- Decide side-effect ordering.
+- Produce domain-level errors or result objects (not HTTP errors).
 
 **Avoid in services:**
-- HTTP request or response objects
-- Framework-specific transport details
-- Raw SQL that needs database-level reasoning
-- UI-oriented formatting or presentation concerns
+- HTTP request/response objects. If you can't unit-test the service without a fake HTTP request, the boundary is wrong.
+- Framework-specific transport details.
+- Raw SQL that needs database-level reasoning. That belongs in repositories or in `db` skill territory.
+- UI-oriented formatting or presentation concerns.
 
 ## Validation
 
-Validate at the boundary closest to untrusted input.
+Validate at the boundary closest to untrusted input. Validate again at every trust boundary you cross.
 
 | Validation type | Where it belongs |
 |---|---|
-| Shape/type parsing | Request boundary |
-| Required fields and format | Request boundary |
+| Shape and type parsing | Request boundary |
+| Required fields, format, length | Request boundary |
 | Cross-field business rules | Service layer |
-| Database-backed uniqueness or referential guarantees | Database constraints first, app checks second |
+| Uniqueness, referential integrity | Database constraints first, app checks second |
 
 Rules:
-- Reject malformed input early.
-- Keep validation messages consistent with project norms.
-- Do not rely on application checks alone for invariants the database can enforce.
+- Reject malformed input early. Fail fast, fail clearly.
+- Keep validation messages consistent. "Invalid email" everywhere, not three different phrasings.
+- Do not rely on application checks alone for invariants the database can enforce. App checks lose races; constraints don't.
 
-## Authentication and Authorization
+## Authentication vs. Authorization
 
-Separate identity from permission.
+These are separate decisions and they need separate code paths.
 
 - **Authentication** answers: who is the caller?
 - **Authorization** answers: may this caller do this action on this resource?
 
+Mixing them is how you ship privilege escalation bugs. Authenticate first. Then, for every protected endpoint, ask: does this specific caller have permission to do this specific thing to this specific resource? IDOR vulnerabilities live in the gap between "user is logged in" and "user owns this resource."
+
 **Auth/authz checklist:**
-- [ ] Unauthenticated and unauthorized cases are handled separately
-- [ ] Resource ownership or tenant boundaries are explicit
-- [ ] Security-sensitive defaults fail closed
+- [ ] Unauthenticated and unauthorized are handled separately and return different responses
+- [ ] Resource ownership or tenant boundaries are explicit in the code, not implicit in the query
+- [ ] Security-sensitive defaults fail closed (deny on absence of permission)
 - [ ] Audit or security logs follow existing conventions
-- [ ] Secrets and tokens are never logged
+- [ ] Secrets, tokens, and session IDs are never logged
 
-## Integration Boundaries
+## External Integrations
 
-When calling external systems:
-- Set explicit timeouts.
-- Decide retry behavior intentionally; do not blindly retry non-idempotent writes.
-- Map external errors into local error semantics.
-- Preserve correlation IDs or trace context if the system uses them.
-- Keep provider-specific payload mapping at the edge of the integration.
+The network is the enemy. Treat every external call as something that will fail, time out, return malformed data, or simply hang.
+
+- **Always set explicit timeouts.** No default-timeout-of-infinity. Connect timeout, read timeout, total deadline.
+- **Decide retry behavior intentionally.** Idempotent reads: retry freely with backoff. Non-idempotent writes: don't retry blindly, or use idempotency keys.
+- **Map external errors into local error semantics.** `UpstreamUnavailable`, `UpstreamRateLimited`, `UpstreamInvalidResponse`. Don't leak provider HTTP codes to your callers.
+- **Preserve correlation IDs or trace context.** If the system uses OpenTelemetry, propagate it. If it doesn't, propagate at least a request ID.
+- **Keep provider-specific mapping at the edge.** Internal code should not know that the provider is Stripe, Twilio, or anyone in particular.
 
 **Integration checklist:**
-- [ ] Timeout behavior is explicit
-- [ ] Retry policy matches idempotency reality
-- [ ] External responses are validated before use
-- [ ] Partial failure behavior is defined
-- [ ] Side effects are ordered intentionally
+- [ ] Connect timeout, read timeout, and overall deadline are all set
+- [ ] Retry policy matches the actual idempotency of the operation
+- [ ] External responses are validated before use, not trusted blindly
+- [ ] Partial failure behavior is explicitly designed, not accidental
+- [ ] Side effects are ordered intentionally — what gets persisted before the side effect, what after
 
 ## Refactoring the App Layer
 
-Refactor only when it improves the requested change.
+Refactor only when it serves the change at hand.
 
-- Extract a service when logic is duplicated, deeply nested, or impossible to test at the current boundary.
-- Keep module moves local; avoid repo-wide renames unless the request demands them.
+- Extract a service when logic is duplicated, deeply nested, or impossible to test at the current boundary. Not before.
+- Keep module moves local. Avoid repo-wide renames unless the request demands them.
 - Preserve public contracts unless the task includes coordinated caller updates.
-- Pair structural changes with behavior checks.
+- Pair structural changes with behavior checks. A refactor without tests is a rewrite in disguise.
 
 ## Anti-Patterns
 
-- Fat handlers that mix transport, business rules, and persistence details
-- Authorization checks hidden deep inside unrelated helpers
-- Validation scattered across multiple layers without a clear boundary
-- App-only enforcement of invariants that belong in database constraints
-- Integration code without timeouts, retries, or failure semantics
+- **Fat handlers** that mix transport parsing, business rules, and persistence.
+- **Authorization hidden** deep inside unrelated helpers, where it's easy to bypass.
+- **Validation scattered** across multiple layers with no clear boundary, so nothing is fully trusted.
+- **App-only enforcement** of invariants the database could enforce.
+- **Integration code without timeouts, retries, or failure semantics.** This is the #1 cause of cascading production incidents.
+- **`catch (e) { }`** anywhere in the codebase.
+- **String-typed identifiers** when the type system could distinguish `UserId` from `OrgId`.
