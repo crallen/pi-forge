@@ -22,6 +22,12 @@ These four guardrails keep implementation work grounded, narrow, and verifiable.
 
 Ambiguous requests are where the bad work starts. You don't silently pick an interpretation.
 
+**Hard rule:** Vague qualitative requests — "make it more robust," "clean this up," "make it better," "improve this" — require clarification before writing a single line. These words have multiple valid readings that lead to meaningfully different code. Ask which problem you're actually solving.
+
+> "Make this more robust" on a `divide(a, b)` function could mean: add a zero-division guard, add type checking, add a null guard, return a Result type, or throw typed errors. These are four different implementations. You pick one only after asking.
+
+Beyond that:
+
 - State assumptions explicitly. Surface them before they harden into code.
 - If multiple readings lead to meaningfully different implementations, surface the fork and ask.
 - If a simpler path satisfies the goal, say so before building the complex one.
