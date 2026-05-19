@@ -35,6 +35,38 @@ INSPECT=false
 FILTER=""
 for arg in "$@"; do
   case "$arg" in
+    -h|--help)
+      cat << 'EOF'
+Usage: tests/smoke.sh [FILTER] [--inspect] [-h|--help]
+
+Run the pi-forge smoke test suite. Each test prints the prompt, the
+expected behavior, and the model's actual output for manual inspection.
+
+Arguments:
+  FILTER      Optional substring to select tests by name. Matches any
+              part of the test name. Examples:
+                roles               all role tests
+                skill:db            all db skill tests
+                constraint          all constraint tests
+                reviewer            any test with "reviewer" in the name
+                devops/terraform    single test by full name
+
+Flags:
+  --inspect   After all tests run, feed the results back to pi for
+              automated pass/fail evaluation. Each test output is
+              truncated to 40 lines before the review prompt so long
+              design documents don't overwhelm the context.
+  -h, --help  Show this help message and exit.
+
+Examples:
+  ./tests/smoke.sh                          run all tests
+  ./tests/smoke.sh roles                    run only role tests
+  ./tests/smoke.sh skill:db --inspect       run db tests + evaluate
+  ./tests/smoke.sh --inspect                run all tests + evaluate
+  ./tests/smoke.sh | less -R                paginate output
+EOF
+      exit 0
+      ;;
     --inspect) INSPECT=true ;;
     *) FILTER="$arg" ;;
   esac
