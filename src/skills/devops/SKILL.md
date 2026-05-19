@@ -71,8 +71,26 @@ Build infrastructure and automation that is reproducible, secure, and maintainab
 
 ## Terraform / OpenTofu / Terragrunt
 
+**Constraints — read-only operations only:**
+
+Do not run state-altering commands. The following are off-limits:
+
+| Command | Reason |
+|---|---|
+| `apply` / `run-all apply` | Modifies real infrastructure |
+| `destroy` / `run-all destroy` | Destroys real infrastructure |
+| `import` | Alters state file |
+| `state mv` | Alters state file |
+| `state rm` | Alters state file |
+| `state push` | Overwrites remote state |
+| `workspace new` / `workspace delete` | Alters workspace state |
+
+Permitted read-only operations: `init`, `plan`, `validate`, `fmt`, `show`, `output`, `state list`, `state show`, `providers`, `version`.
+
+Present the plan output and configuration for the user to review and apply themselves.
+
 **Workflow:**
-- Always run `plan` before `apply`; review the plan output before proceeding
+- Always produce a `plan` for review before any infrastructure change
 - Use remote state (S3 + DynamoDB, GCS, Terraform Cloud) — never commit `.tfstate` files
 - Enable state locking; treat lock conflicts as a signal to investigate before overriding
 - Use `terraform fmt` and `terraform validate` in CI as a lint step
@@ -89,15 +107,14 @@ Build infrastructure and automation that is reproducible, secure, and maintainab
 
 **State management:**
 - Use separate state files per environment (dev, staging, prod) — never share state
-- Use `terraform import` to bring existing resources under management before modifying them
-- Use `terraform state mv` carefully; document state manipulation in commit messages
-- Never use `terraform state rm` without understanding the consequences — resources stay running
+- Use `state list` and `state show` to inspect state — do not run `import`, `state mv`, or `state rm`
+- Document any state manipulation that the user will need to run manually in the implementation notes
 
 **Terragrunt:**
 - Use `terragrunt.hcl` at the root to define remote state and provider configuration once
 - Use `dependency` blocks to reference outputs from other Terragrunt units
 - Use `inputs = {}` in unit-level `terragrunt.hcl` to pass environment-specific values
-- Use `run-all plan` / `run-all apply` to operate across multiple units; review dependency order
+- Use `run-all plan` to preview changes across multiple units; present for user review
 - Keep the folder structure mirroring the environment/account/region hierarchy
 
 **Security:**
@@ -107,10 +124,19 @@ Build infrastructure and automation that is reproducible, secure, and maintainab
 
 ## Cloud CLIs
 
+**Constraints — confirm before write operations:**
+
+Before running any CLI command that creates, modifies, or deletes a resource, state what the command will do and ask for explicit confirmation. Read-only commands (`list`, `describe`, `get`, `show`, `status`) may run freely.
+
+Write operations requiring confirmation include (but are not limited to):
+- **AWS CLI:** `create-*`, `put-*`, `update-*`, `delete-*`, `modify-*`, `attach-*`, `detach-*`, `terminate-*`, `stop-*`, `start-*`, `run-instances`
+- **gcloud:** `create`, `update`, `delete`, `deploy`, `set`, `add-iam-policy-binding`, `remove-iam-policy-binding`
+- **Azure CLI:** `create`, `update`, `delete`, `set`, `assign`, `remove`, `deploy`
+
 **General practices:**
 - Always target a specific account/project/subscription explicitly — avoid relying on defaults in scripts
 - Use `--output json` (AWS, gcloud) for machine-readable output; pipe through `jq` for parsing
-- Use `--dry-run` or equivalent flags when available before making changes
+- Use `--dry-run` or equivalent flags when available to preview changes before confirming
 - Set explicit regions/zones in scripts; don't rely on config file defaults
 - Use service accounts and workload identity for CI/CD, not personal credentials
 
@@ -144,4 +170,4 @@ Build infrastructure and automation that is reproducible, secure, and maintainab
 
 ## When to Pause
 
-If the task involves production infrastructure changes, destructive Terraform operations (`destroy`, `state rm`), or changes to authentication/secrets infrastructure — state the risk and outline the rollback plan before providing the implementation.
+If the task involves production infrastructure changes or changes to authentication/secrets infrastructure — state the risk and outline the rollback plan before providing configuration or commands.
