@@ -27,9 +27,30 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-FILTER="${1:-}"
+# Parse flags. Accepts any combination of --inspect and a filter string.
+#   ./tests/smoke.sh --inspect
+#   ./tests/smoke.sh skill:db --inspect
+#   ./tests/smoke.sh --inspect constraint
+INSPECT=false
+FILTER=""
+for arg in "$@"; do
+  case "$arg" in
+    --inspect) INSPECT=true ;;
+    *) FILTER="$arg" ;;
+  esac
+done
+
 COUNT=0
 RAN=0
+
+# Temp file for captured results in --inspect mode.
+# Each test appends a structured block so the final review prompt has
+# all test names, expected behaviors, and outputs in one place.
+RESULT_FILE=""
+if $INSPECT; then
+  RESULT_FILE="$(mktemp /tmp/forge-smoke-results.XXXXXX)"
+  trap 'rm -f "$RESULT_FILE"' EXIT
+fi
 
 header() {
   local name="$1"
@@ -61,8 +82,36 @@ run() {
   fi
   echo
   echo "--- Output ----------------------------------------------------------------------"
-  # shellcheck disable=SC2086
-  pi -e "$REPO_ROOT" $flags --print "$prompt" || echo "(pi exited with non-zero status)"
+
+  if $INSPECT; then
+    # Capture output AND stream it to the terminal simultaneously.
+    # Truncate at 40 lines for the review prompt — enough to judge pass/fail
+    # without overwhelming the context with long design documents.
+    local raw_output
+    # shellcheck disable=SC2086
+    raw_output="$(pi -e "$REPO_ROOT" $flags --print "$prompt" 2>&1)" \
+      || raw_output="(pi exited with non-zero status)"
+    echo "$raw_output"
+    local truncated
+    truncated="$(echo "$raw_output" | head -40)"
+    local line_count
+    line_count="$(echo "$raw_output" | wc -l | tr -d ' ')"
+    if (( line_count > 40 )); then
+      truncated="${truncated}"$'\n'"[... truncated — ${line_count} lines total]"
+    fi
+    # Append structured block to the result file.
+    {
+      echo "TEST: $name"
+      echo "EXPECTED: $expected"
+      echo "OUTPUT:"
+      echo "$truncated"
+      echo "---"
+    } >> "$RESULT_FILE"
+  else
+    # shellcheck disable=SC2086
+    pi -e "$REPO_ROOT" $flags --print "$prompt" || echo "(pi exited with non-zero status)"
+  fi
+
   echo "---------------------------------------------------------------------------------"
 }
 
@@ -230,5 +279,39 @@ else
   echo "  Ran $RAN of $COUNT tests"
 fi
 echo "================================================================================"
-echo
-echo "Now read the output and judge each test against its 'Expected:' line."
+
+if $INSPECT; then
+  echo
+  echo "================================================================================"
+  echo "  Inspect mode: feeding results to pi for evaluation..."
+  echo "================================================================================"
+  echo
+
+  INSPECT_PROMPT="You are reviewing the results of a smoke test suite for the pi-forge \
+Pi extension. The extension provides role-based AI personas (tech-lead, architect) and \
+on-demand specialist skills (auditor, reviewer, tester, etc.).
+
+Each TEST block below shows:
+- The test name
+- EXPECTED: what behavior the test was checking for
+- OUTPUT: the first 40 lines of what the model actually produced
+
+For each test, give:
+1. PASS or FAIL
+2. One sentence explaining why
+
+Then give a brief summary: overall pass rate, any patterns in the failures, \
+and the most important thing to fix.
+
+--- Results ---
+
+$(cat "$RESULT_FILE")"
+
+  pi -e "$REPO_ROOT" --print "$INSPECT_PROMPT" \
+    || echo "(pi exited with non-zero status during inspection)"
+else
+  echo
+  echo "Tip: re-run with --inspect to have pi evaluate the results automatically."
+  echo "  ./tests/smoke.sh --inspect"
+  echo "  ./tests/smoke.sh skill:db --inspect"
+fi
