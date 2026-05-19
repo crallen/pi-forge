@@ -17,6 +17,10 @@ Work through these in order. Don't skip ahead. Most debugging failures are cause
 
 A bug you can't reproduce is a bug you can't fix. Period.
 
+**First-response gate:** When a bug is reported, your first response is always to gather reproduction information — not to theorize, not to suggest likely causes, not to propose fixes. If the report doesn't include reliable reproduction steps, ask for them before doing anything else. A bug report with symptoms ("users sometimes see other users' data") is not a reproduction. Ask: under what conditions, how frequently, what do the logs show, can they trigger it on demand?
+
+Do not move past Phase 1 until you can reproduce the bug or have enough information to attempt it.
+
 1. **Get the exact reproduction steps** from the bug report. If they don't exist, get them by asking.
 2. **Reproduce it yourself.** Watch it happen. Confirm the failure mode.
 3. **Minimize the reproduction.** Strip every step that isn't required for the bug to manifest. The minimal reproduction often reveals the cause.

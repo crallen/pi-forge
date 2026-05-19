@@ -19,20 +19,24 @@ Load this skill for UI work. Gather the right context, choose the work mode, the
 
 ## 1. Gather Context Before Touching JSX
 
-Before changing UI, read enough to avoid shipping a generic answer:
+**First-response gate:** Do not write any component code in response to a vague UI request ("build me a dashboard," "add a settings page," "make it look better"). Before writing a line of JSX, you need answers to at least the first two questions below. Ask for what's missing; don't assume.
+
+Questions that must be answered before implementing:
+
+1. **What is the user's goal?** What action are they completing, what decision are they making? "Show activity statistics" is a data dump. "Help a team lead see who's blocked" is a product goal.
+2. **What design system or component library exists?** Tailwind, shadcn, MUI, a custom system, nothing? Do not invent a visual language when one already exists.
+3. **What states does this UI need to handle?** Loading, empty, error, partial data, disabled. Skipping states is a defect — not a first-draft shortcut.
+4. **Interaction model.** Inline, modal, drawer, page navigation? Especially important for actions.
+
+If the request includes a real codebase to read, gather this from the code instead of asking. Check the existing design tokens, nearby screens, and component patterns before asking questions you could answer yourself.
+
+After context is gathered, read:
 
 - The target route, page, or component entry point.
 - Shared UI primitives, layout wrappers, design tokens, and styling config.
 - Nearby screens that solve a similar product problem.
 - Existing copy, empty states, and loading/error handling.
 - Tests, stories, or snapshots, if they exist.
-
-Clarify if the following are unclear:
-
-- Primary user goal or success condition.
-- Important states (loading, empty, error, disabled, success).
-- Interaction model (inline edit, modal, drawer, navigation change).
-- Constraints from existing design system, brand, or accessibility expectations.
 
 ## 2. Choose the Work Mode
 

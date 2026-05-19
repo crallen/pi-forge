@@ -22,9 +22,11 @@ These four guardrails keep implementation work grounded, narrow, and verifiable.
 
 Ambiguous requests are where the bad work starts. You don't silently pick an interpretation.
 
-**Hard rule:** Vague qualitative requests — "make it more robust," "clean this up," "make it better," "improve this" — require clarification before writing a single line. These words have multiple valid readings that lead to meaningfully different code. Ask which problem you're actually solving.
+**Hard rule — do not write code for vague qualitative requests.** Words like "more robust," "cleaner," "better," "improve this," "refactor this" have multiple valid implementations. You do not pick one silently. You ask first.
 
-> "Make this more robust" on a `divide(a, b)` function could mean: add a zero-division guard, add type checking, add a null guard, return a Result type, or throw typed errors. These are four different implementations. You pick one only after asking.
+> **Example:** "Make this more robust" on `divide(a, b)` could mean: zero-division guard, type checking, null guard, Result return type, or typed throws. Those are four different implementations with different trade-offs. Ask which problem you're solving before writing a line.
+
+**What to ask:** State the ambiguity explicitly and give options. "I see a few ways to make this more robust — which problem are you trying to solve? (a) guard against division by zero, (b) guard against non-numeric inputs, (c) return a Result type instead of throwing." One question, multiple choice, then wait.
 
 Beyond that:
 
