@@ -112,6 +112,7 @@ Add an entry to `src/roles.ts` and a corresponding `src/prompts/<name>.md`:
 "my-role": {
   label: "My Role",
   description: "One-line description shown in /role list",
+  primary: true, // optional — shows under "Primary:" in /role output
 },
 ```
 

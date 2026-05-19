@@ -23,25 +23,7 @@ const CUSTOM_TYPE = "forge-state";
 const PROMPTS_DIR = nodePath.join(import.meta.dirname, "prompts");
 const SKILLS_DIR = nodePath.join(import.meta.dirname, "skills");
 
-// ─── Prompt loading ───────────────────────────────────────────────────────────
-
-const promptCache = new Map<string, string>();
-
-function loadPrompt(key: string): string {
-  if (key === "none") return "";
-  if (promptCache.has(key)) return promptCache.get(key)!;
-
-  const filePath = nodePath.join(PROMPTS_DIR, `${key}.md`);
-  try {
-    const content = fs.readFileSync(filePath, "utf-8").trim();
-    promptCache.set(key, content);
-    return content;
-  } catch {
-    throw new Error(`forge: missing prompt file for role "${key}" — expected ${filePath}`);
-  }
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// --- Helpers ------------------------------------------------------------------
 
 function statusText(ctx: { ui: { theme: any } }, key: string): string {
   const theme = ctx.ui.theme;
@@ -57,26 +39,44 @@ function applyStatus(ctx: { ui: { theme: any; setStatus: (id: string, text: stri
   ctx.ui.setStatus("forge", statusText(ctx, key));
 }
 
-// ─── Extension entry ──────────────────────────────────────────────────────────
+// --- Extension entry ----------------------------------------------------------
 
 export default function (pi: ExtensionAPI) {
-  // ── State (inside closure, not module scope) ─────────────────────────────────
+  // State (inside closure, not module scope)
   let activeRole = DEFAULT_ROLE;
+  const promptCache = new Map<string, string>();
 
-  // ── Register --role flag ──────────────────────────────────────────────────────
+  function loadPrompt(key: string): string {
+    if (key === "none") return "";
+    if (promptCache.has(key)) return promptCache.get(key)!;
+
+    const filePath = nodePath.join(PROMPTS_DIR, `${key}.md`);
+    try {
+      const content = fs.readFileSync(filePath, "utf-8").trim();
+      promptCache.set(key, content);
+      return content;
+    } catch {
+      throw new Error(`forge: missing prompt file for role "${key}" — expected ${filePath}`);
+    }
+  }
+
+  // Register --role flag
   pi.registerFlag("role", {
     description: `Start with a specific role active (e.g. --role architect). Options: ${ROLE_KEYS.join(", ")}`,
     type: "string",
     default: "",
   });
 
-  // ── Contribute skills directory ───────────────────────────────────────────────
+  // Contribute skills directory
   pi.on("resources_discover", async () => {
     return { skillPaths: [SKILLS_DIR] };
   });
 
-  // ── Restore state from session on start / reload ──────────────────────────────
-  pi.on("session_start", async (_event, ctx) => {
+  // Restore state from session on start / reload
+  pi.on("session_start", async (event, ctx) => {
+    // Clear prompt cache on reload so file edits take effect
+    if (event.reason === "reload") promptCache.clear();
+
     // 1. Check for saved session state
     const entries = ctx.sessionManager.getEntries();
     let restored = false;
@@ -103,11 +103,21 @@ export default function (pi: ExtensionAPI) {
     applyStatus(ctx, activeRole);
   });
 
-  // ── Inject role system prompt before each agent turn ──────────────────────────
+  // Inject role system prompt before each agent turn
   pi.on("before_agent_start", async (event, ctx) => {
     applyStatus(ctx, activeRole);
 
-    const prompt = loadPrompt(activeRole);
+    let prompt: string;
+    try {
+      prompt = loadPrompt(activeRole);
+    } catch {
+      ctx.ui.notify(
+        `forge: prompt file missing for role "${activeRole}" — run /reload after adding it`,
+        "error",
+      );
+      return;
+    }
+
     if (!prompt) return;
 
     return {
@@ -115,7 +125,7 @@ export default function (pi: ExtensionAPI) {
     };
   });
 
-  // ── /role command ─────────────────────────────────────────────────────────────
+  // /role command
   pi.registerCommand("role", {
     description: "Switch the active role, or show available roles",
 
@@ -133,7 +143,7 @@ export default function (pi: ExtensionAPI) {
           const marker = k === activeRole ? "→" : " ";
           return `${marker} ${k.padEnd(12)}  ${ROLES[k].description}`;
         });
-        const specialistLines = SPECIALIST_ROLE_KEYS.map((k) => {
+        const resetLine = SPECIALIST_ROLE_KEYS.map((k) => {
           const marker = k === activeRole ? "→" : " ";
           return `${marker} ${k.padEnd(12)}  ${ROLES[k].description}`;
         });
@@ -144,7 +154,8 @@ export default function (pi: ExtensionAPI) {
             `Primary:`,
             ...primaryLines,
             ``,
-            ...specialistLines,
+            `Reset:`,
+            ...resetLine,
           ].join("\n"),
           "info",
         );
@@ -169,7 +180,7 @@ export default function (pi: ExtensionAPI) {
     },
   });
 
-  // ── /forge command ────────────────────────────────────────────────────────────
+  // /forge command
   pi.registerCommand("forge", {
     description: "Show active role and a preview of its system prompt",
     handler: async (_args, ctx) => {
