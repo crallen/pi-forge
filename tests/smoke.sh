@@ -85,8 +85,17 @@ run "roles/tech-lead-handles-simple" \
   "What is the difference between let and const in JavaScript?"
 
 run "roles/tech-lead-knows-when-to-escalate" \
-  "tech-lead should recognize this is genuinely security-flavored and reference the auditor skill" \
-  "I need a thorough security audit of my Express app's authentication module before our SOC2 review next week."
+  "should exhibit auditor-skill behavior: structured methodology (recon, data flow, vuln analysis), severity taxonomy, not a generic 'here are some tips' response" \
+  "I need a thorough security audit of this Express auth module before our SOC2 review:
+  app.post('/login', (req, res) => {
+    const user = db.query(\"SELECT * FROM users WHERE email='\" + req.body.email + \"'\")
+    if (user && user.password === req.body.password) {
+      res.cookie('session', user.id)
+      res.json({ ok: true })
+    } else {
+      res.status(401).json({ error: 'invalid credentials' })
+    }
+  })"
 
 # =============================================================================
 # Skills — domain behavior
@@ -113,16 +122,16 @@ run "skill:db/migration-safety" \
   "I need to drop the legacy 'username' column from the users table. It's still being written to by some old code paths. What's the migration plan?"
 
 run "skill:frontend/avoids-generic-ui" \
-  "should ask about product context, existing design system, and the states needed — should NOT dump generic Tailwind 'dashboard polish'" \
-  "Build me a dashboard for showing user activity statistics."
+  "should ask about product context, existing design system, and the states to handle — should NOT immediately dump generic Tailwind/shadcn dashboard code" \
+  "Hypothetical scenario (ignore the current repo): build me a dashboard page for showing user activity statistics in a React app."
 
 run "skill:devops/github-actions-specifics" \
   "should mention concurrency groups, caching via setup-action, OIDC for cloud auth, and minimum permissions — platform-specific knowledge, not generic CI advice" \
   "Write a GitHub Actions workflow that lints, tests, and deploys a Node.js service to AWS staging on merge to main."
 
 run "skill:debugging-methodology/reproduce-first" \
-  "should insist on reproducing first, ask for steps/conditions, and refuse to jump straight to a fix" \
-  "Users are sometimes seeing other users' data. Help me fix it."
+  "should refuse to jump straight to a fix — should ask for reproduction steps, frequency, conditions, environment. No code changes yet." \
+  "Hypothetical scenario (ignore the current repo): users of a web app are sometimes seeing other users' private data. It's intermittent and we can't reproduce it reliably. Help me fix it."
 
 run "skill:reviewer/structured-format" \
   "should produce a Summary, Findings grouped by severity (CRITICAL/WARNING/INFO), and a 'What's Done Well' section" \
@@ -149,8 +158,8 @@ run "skill:tester/pyramid-and-mocks" \
   "How should I test a payment processing service that integrates with Stripe?"
 
 run "skill:planner/first-step-and-milestones" \
-  "should surface the real goal, give a concrete cheap first step, and group long work into milestones rather than a flat 50-task list" \
-  "Plan: rebuild our legacy PHP monolith in Go."
+  "should surface the real goal (why Go? why now?), give a concrete cheap first step, and group work into milestones — not a flat 50-task list" \
+  "Hypothetical scenario (ignore the current repo): we want to rebuild our legacy PHP monolith in Go. Help me plan it."
 
 run "skill:docs/style-guide" \
   "should follow the style: short title, one-line description, imperative section titles, concise chunks, no marketing tone" \
