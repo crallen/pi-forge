@@ -23,9 +23,12 @@
 
 set -uo pipefail
 
-# Run from the repo root so the extension path resolves.
+# Resolve the repo root for the -e flag (extension path), but run tests
+# from a temp directory so any files pi creates don't land in the repo.
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$REPO_ROOT"
+WORK_DIR="$(mktemp -d /tmp/forge-smoke-work.XXXXXX)"
+trap 'rm -rf "$WORK_DIR"' EXIT
+cd "$WORK_DIR"
 
 # Parse flags. Accepts any combination of --inspect and a filter string.
 #   ./tests/smoke.sh --inspect
