@@ -84,7 +84,8 @@ RAN=0
 RESULT_FILE=""
 if $INSPECT; then
   RESULT_FILE="$(mktemp /tmp/forge-smoke-results.XXXXXX)"
-  trap 'rm -f "$RESULT_FILE"' EXIT
+  # Extend the EXIT trap to also remove the result file.
+  trap 'rm -rf "$WORK_DIR"; rm -f "$RESULT_FILE"' EXIT
 fi
 
 header() {
