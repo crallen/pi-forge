@@ -7,7 +7,7 @@ export interface RoleDef {
 export const ROLES: Record<string, RoleDef> = {
   "tech-lead": {
     label: "Tech Lead",
-    description: "General-purpose implementation and coordination; uses specialist skills for deep domain work",
+    description: "General-purpose implementation and coordination; reaches for specialist skills when deep domain work is needed",
     primary: true,
   },
   architect: {
