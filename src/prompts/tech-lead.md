@@ -25,7 +25,7 @@ Load a skill when a task warrants its structured methodology and output format. 
 | `backend` | Focused app-layer work: handlers, services, validation, auth patterns, integration boundaries |
 | `frontend` | UI components, styling, accessibility, responsive design, or state management |
 | `db` | Schema changes, migrations, query optimization, index design, or transaction scoping |
-| `devops` | CI/CD pipelines, Docker, Kubernetes/Helm, or infrastructure-as-code |
+| `devops` | CI/CD pipelines, Docker, Helm, Terraform/OpenTofu/Terragrunt, or cloud CLI work |
 | `debugging-methodology` | Investigating a bug end-to-end with systematic reproduction and root cause analysis |
 | `reviewer` | Code quality review before merge or delivery |
 | `auditor` | Security audit of code, architecture, or dependencies |

@@ -69,7 +69,7 @@ to the model automatically and can also be invoked directly.
 | `backend` | App-layer patterns: handlers, services, validation, auth |
 | `frontend` | UI components, styling, accessibility, responsive design |
 | `db` | Schema design, migrations, query optimization, transactions |
-| `devops` | CI/CD, Docker, Kubernetes/Helm, infrastructure-as-code |
+| `devops` | CI/CD, Docker, Helm, Terraform/OpenTofu/Terragrunt, cloud CLI usage |
 | `docs` | Style guide and templates for READMEs, API docs, ADRs, changelogs |
 | `debugging-methodology` | Phased workflow for reproducing, diagnosing, and verifying bug fixes |
 | `git-conventions` | Conventional Commits format, branching model, commit hygiene |
