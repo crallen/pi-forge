@@ -17,21 +17,17 @@ or you can invoke them directly with `/skill:name`.
 
 ## Install
 
-Clone the repo:
+```bash
+pi install git:github.com/crallen/pi-forge
+```
+
+That's it. Pi clones the repo, loads the extension, and registers the skills automatically.
+
+To try it without installing:
 
 ```bash
-git clone https://github.com/crallen/pi-forge.git ~/dev/pi-forge
+pi -e git:github.com/crallen/pi-forge
 ```
-
-Add it to your Pi settings (`~/.pi/agent/settings.json`):
-
-```json
-{
-  "extensions": ["/absolute/path/to/pi-forge"]
-}
-```
-
-No build step needed. Pi loads TypeScript directly.
 
 ---
 

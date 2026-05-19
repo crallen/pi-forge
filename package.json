@@ -2,12 +2,14 @@
   "name": "pi-forge",
   "version": "0.1.0",
   "description": "Personal development workflow extension for Pi",
-  "private": true,
+  "keywords": ["pi-package"],
   "pi": {
     "extensions": ["./src/index.ts"]
   },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
     "@types/node": "^22.0.0",
     "typescript": "^5.0.0"
   }
