@@ -9,8 +9,9 @@
  *   /forge         Show active role and a preview of its system prompt
  *
  * Roles:     tech-lead (default), architect, none
- * Skills:    spec, implementer, frontend, db, devops, docs,
- *            reviewer, auditor, tester, planner
+ * Skills:    coding-guardrails, spec, backend, frontend, db, devops,
+ *            docs, debugging-methodology, git-conventions, reviewer,
+ *            auditor, tester, planner
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -143,7 +144,6 @@ export default function (pi: ExtensionAPI) {
             `Primary:`,
             ...primaryLines,
             ``,
-            `Other:`,
             ...specialistLines,
           ].join("\n"),
           "info",
@@ -174,11 +174,16 @@ export default function (pi: ExtensionAPI) {
     description: "Show active role and a preview of its system prompt",
     handler: async (_args, ctx) => {
       const role = ROLES[activeRole];
-      const prompt = loadPrompt(activeRole);
 
-      const preview = prompt
-        ? prompt.split("\n").slice(0, 4).join("\n") + (prompt.split("\n").length > 4 ? "\n..." : "")
-        : "(no system prompt — Pi default behavior)";
+      let preview: string;
+      try {
+        const prompt = loadPrompt(activeRole);
+        preview = prompt
+          ? prompt.split("\n").slice(0, 4).join("\n") + (prompt.split("\n").length > 4 ? "\n..." : "")
+          : "(no system prompt — Pi default behavior)";
+      } catch {
+        preview = "(prompt file missing — run /reload after adding a prompt file)";
+      }
 
       ctx.ui.notify(
         [

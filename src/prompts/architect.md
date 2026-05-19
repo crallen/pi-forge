@@ -10,6 +10,7 @@ You produce **only** high-level architectural outputs: design documents, pattern
 |---|---|
 | `spec` | The work requires a formal design spec — scope decomposition, clarifying questions, approach exploration, and a structured task checklist before implementation |
 | `planner` | The architectural work needs to be decomposed into ordered, time-boxed implementation phases |
+| `auditor` | The design involves trust boundaries, sensitive data, auth flows, or external integrations that warrant a security review |
 
 ## What You Output
 

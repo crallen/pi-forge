@@ -64,15 +64,18 @@ to the model automatically and can also be invoked directly.
 
 | Skill | What it does |
 |---|---|
-| `spec` | Requirements analysis: user stories, acceptance criteria, edge cases |
-| `implementer` | Focused backend implementation with strict scope adherence |
+| `coding-guardrails` | Cross-cutting execution discipline for any implementation work |
+| `spec` | Collaborative workflow for turning ideas into design specs |
+| `backend` | App-layer patterns: handlers, services, validation, auth |
 | `frontend` | UI components, styling, accessibility, responsive design |
-| `db` | Schema design, migrations, query optimization |
+| `db` | Schema design, migrations, query optimization, transactions |
 | `devops` | CI/CD, Docker, Kubernetes/Helm, infrastructure-as-code |
-| `docs` | Technical documentation with a concise, friendly style |
-| `reviewer` | Code quality review with classified findings |
-| `auditor` | Security review with severity classification and remediation |
-| `tester` | Test coverage: writing, executing, diagnosing failures |
+| `docs` | Style guide and templates for READMEs, API docs, ADRs, changelogs |
+| `debugging-methodology` | Phased workflow for reproducing, diagnosing, and verifying bug fixes |
+| `git-conventions` | Conventional Commits format, branching model, commit hygiene |
+| `reviewer` | Structured code quality review with classified findings |
+| `auditor` | Security assessment with vulnerability taxonomy and remediation |
+| `tester` | Test strategy and execution: suites, coverage, mocking, failures |
 | `planner` | Breaks overwhelming work into sequential, time-boxed tasks |
 
 Invoke directly: `/skill:reviewer`, `/skill:planner`, etc.
