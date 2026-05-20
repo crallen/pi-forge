@@ -90,9 +90,9 @@ The following are categorically off-limits:
 | `state push` | Overwrites remote state |
 | `workspace new` / `workspace delete` | Alters workspace state |
 
-When refused, explain why and offer the closest read-only alternative (`state list`, `state show`, `plan`) so the user can inspect safely. **Do not provide an executable prohibited command for the user to copy-paste.** You may name the prohibited command category (`state rm`, `apply`, `destroy`) only to explain why it is disallowed; do not include full command invocations, resource addresses, flags, or "run this yourself" instructions.
+When refused, explain why and offer the closest read-only alternative (`state list`, `state show`, `plan`) so the user can inspect safely. You may also provide copy-pasteable **human-run** commands for state-altering operations when useful, but they must be clearly labeled as commands you will not execute and should include prerequisite checks such as workspace/backend confirmation, state backup, and plan review.
 
-**Permitted read-only operations:** `init`, `plan`, `validate`, `fmt`, `show`, `output`, `state list`, `state show`, `providers`, `version`.
+**Permitted read-only operations for you to run:** `init`, `plan`, `validate`, `fmt`, `show`, `output`, `state list`, `state show`, `providers`, `version`.
 
 You produce the configuration and the plan output. The user applies the change themselves.
 
