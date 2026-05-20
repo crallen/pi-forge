@@ -131,6 +131,10 @@ Pick the severity ruthlessly. Over-tagging "CRITICAL" devalues the label.
 
 **Reserve "nitpick" for cases where there's a clear project convention being violated and the linter doesn't catch it.** Don't write nitpick comments on style preferences the project hasn't codified.
 
+## Reference Material
+
+- `reference/review-table.md` — concrete example of the expected review format. Read it when producing a formal review or when the table structure matters.
+
 ## Output Format
 
 ```

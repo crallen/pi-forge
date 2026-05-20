@@ -190,6 +190,10 @@ For every finding, provide:
 | **LOW** | Minimal impact, defense-in-depth improvement | Backlog |
 | **INFO** | Best practice deviation, no direct exploitability | Awareness |
 
+## Reference Material
+
+- `reference/security-table.md` — concrete example of the expected report shape, severity table, detail block, dependency audit, and prioritized recommendations. Read it when producing a formal security review or when the output format needs to be precise.
+
 ## Output Format
 
 ```

@@ -47,7 +47,31 @@ After context is gathered, read:
 | Multiple plausible designs, product intent unclear | Ask one concise clarifying question before encoding assumptions |
 | Request implies workflow or IA changes | Recommend clarification before large implementation |
 
-## 3. Component Architecture
+## 3. Reference Routing
+
+This skill has deeper reference material. Load only what the task needs — a button fix does not need the whole frontend stack in context.
+
+| If the task is mainly about... | Read this reference |
+|---|---|
+| Visual direction, hierarchy, typography, color, spacing, motion, interaction tone, or avoiding generic UI | `reference/design-direction.md` |
+| AI-slop smells, repeated UI mistakes, overused polish patterns, or what to avoid before refining a surface | `reference/anti-patterns.md` |
+| Component boundaries, state placement, extraction, forms, tables, lists, page shells, or composition | `reference/component-architecture.md` |
+| Keyboard behavior, semantics, labels, focus, dialogs/menus/drawers, narrow screens, overflow, or touch behavior | `reference/accessibility-responsive.md` |
+| Proof, state coverage, QA checklist, or concise frontend handoff notes | `reference/verification.md` |
+
+Common load sets:
+
+| Task shape | Typical references |
+|---|---|
+| Small component or form refinement | `reference/component-architecture.md` + `reference/accessibility-responsive.md` |
+| Visually weak or under-specified screen | `reference/design-direction.md` + the implementation reference that fits |
+| Complex screen update with meaningful UI behavior | `reference/component-architecture.md` + `reference/accessibility-responsive.md` + `reference/verification.md` |
+| Audit or critique of an existing surface | `reference/design-direction.md` + `reference/anti-patterns.md` + `reference/verification.md` |
+| Final pass before handoff | `reference/verification.md`, plus any missing design/accessibility reference |
+
+Report which references you used when that would make the decision-making clearer.
+
+## 4. Component Architecture
 
 - **Study existing patterns** before writing anything new. The way components are composed in this project is more important than the way you'd compose them.
 - **Match conventions** for props, state placement, composition, and file structure.
@@ -60,7 +84,7 @@ After context is gathered, read:
 - Memoize for measured reasons, not vibes. `useMemo`/`useCallback`/`React.memo` have their own costs.
 - Co-locate state with the component that owns it. Lift state only when truly shared.
 
-## 4. State Management
+## 5. State Management
 
 - Follow the project's existing patterns (Redux, Zustand, Context, Jotai, signals, RxJS, whatever).
 - Keep component state local unless it genuinely needs to be shared. Premature lifting is a top cause of unnecessary re-renders.
@@ -69,7 +93,7 @@ After context is gathered, read:
 
 **Server state vs. client state:** They're not the same. Use a server-state library (React Query, SWR, RTK Query, etc.) for server state. Caching, invalidation, and refetching are solved problems; don't reinvent them in `useEffect`.
 
-## 5. Styling and Layout
+## 6. Styling and Layout
 
 - Use the project's established styling approach. Tailwind, CSS Modules, vanilla-extract, styled-components, Sass — whichever it is. Don't introduce a conflicting methodology.
 - **Implement responsive designs mobile-first** unless the project convention differs.
@@ -77,7 +101,7 @@ After context is gathered, read:
 - **Avoid fragile layouts.** Flexbox or grid with explicit alignment. Position absolute is a tool of last resort, not a default.
 - **Don't hardcode pixel values** for fonts, spacing, or breakpoints when the system provides tokens.
 
-## 6. Accessibility
+## 7. Accessibility
 
 Accessibility is not optional. The web standardized HTML semantics for a reason — use them.
 
@@ -89,7 +113,7 @@ Accessibility is not optional. The web standardized HTML semantics for a reason 
 - **`alt` text for images. `aria-label` for icon buttons. Labels for form controls.** Always.
 - **Screen reader testing** is not optional for forms, dialogs, or anything custom. VoiceOver on macOS, NVDA on Windows.
 
-## 7. Verification
+## 8. Verification
 
 Before delivering:
 
