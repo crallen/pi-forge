@@ -108,6 +108,8 @@ Brief description of what this endpoint does.
 
 | Name | Type | In | Required | Description |
 |------|------|----|----------|-------------|
+| `id` | string | path | yes | Resource identifier |
+| `limit` | integer | query | no | Max results (default: 20, max: 100) |
 
 **Request Body:**
 
@@ -125,6 +127,8 @@ Brief description of what this endpoint does.
 
 | Status | Code | Description |
 |--------|------|-------------|
+| 400 | `INVALID_INPUT` | Request body validation failed |
+| 401 | `UNAUTHORIZED` | Missing or invalid authentication |
 
 **Example:**
 

@@ -126,6 +126,13 @@ Before delivering:
 - [ ] No hardcoded strings that should use i18n (if the project uses i18n)
 - [ ] No console errors or warnings introduced
 
+When reporting completion, name what informed the work and what was verified:
+
+- Local precedent, primitives, tokens, or routes that shaped the implementation.
+- Frontend references used, when relevant.
+- States and viewport/accessibility checks verified directly.
+- Anything not verified directly that still needs browser, device, or assistive-tech confirmation.
+
 ## Anti-Patterns
 
 - **Generic "dashboard polish"** that ignores the product's real tone and structure. Rounded cards, gradient buttons, lucide icons everywhere — this is AI-generated UI, not designed UI.

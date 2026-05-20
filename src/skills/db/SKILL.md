@@ -135,6 +135,15 @@ ORMs are acceptable until they hide behavior that matters.
 - Do not trust ORM validations to replace database constraints. ORM validations lose races.
 - Drop to raw SQL when the abstraction obscures query shape, locking, or index use. ORM-generated SQL for complex queries is often worse than what you'd write by hand.
 
+## Collaboration with Backend
+
+Coordinate with `backend` when schema or query changes affect application behavior:
+
+- New schema or constraint work requires endpoint, service, serializer, or validation changes.
+- Dual-write or read-path migrations need app coordination.
+- Query behavior affects handler-level pagination, filtering, or authorization behavior.
+- Integrity rules need both database enforcement and user-facing error mapping.
+
 ## Anti-Patterns
 
 - **Nullable-by-default schemas** with no semantic reason for the nulls.

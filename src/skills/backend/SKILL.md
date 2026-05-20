@@ -18,10 +18,12 @@ Load this skill for app-layer work: handlers, controllers, services, validation,
 | Validation, auth, authz, request orchestration | backend |
 | External API and queue integrations | backend |
 | Schema design, migrations, constraints, indexes | db |
+| Query performance, execution plans, N+1 behavior | db |
+| Data backfills, online migration safety, rollback plans | db |
 | Query plans, transaction boundaries, lock behavior | db |
 | ORM/query-builder code where SQL behavior is the real risk | db |
 
-If the request is fundamentally about the database — design or behavior — escalate to `db` and keep the app-layer work focused.
+If the request is fundamentally about the database — design, migration safety, or runtime query behavior — escalate to `db` and keep the app-layer work focused.
 
 ## Request Flow
 

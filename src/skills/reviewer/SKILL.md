@@ -65,6 +65,7 @@ Read these against the changed code. Not theoretical — actual exploitable path
 - [ ] Sensitive data encrypted at rest and in transit.
 - [ ] Security headers configured (CSP, X-Frame-Options, X-Content-Type-Options, HSTS).
 - [ ] File handling guards against path traversal.
+- [ ] Cryptographic operations use current, non-deprecated algorithms and safe randomness.
 
 For deep security concerns, escalate to `auditor`.
 
@@ -77,6 +78,7 @@ Look for actual problems, not micro-optimizations.
 - [ ] Memory allocations in hot paths — allocating in tight loops, string concat in loops.
 - [ ] Pagination implemented for unbounded result sets.
 - [ ] Expensive computations cached when reuse is real.
+- [ ] Blocking operations avoided on the main thread or hot path.
 - [ ] Algorithmic complexity appropriate to expected input size.
 
 **Don't flag speculative performance issues.** If the change won't be on a hot path, "this could be slow at scale" isn't actionable.
@@ -88,7 +90,8 @@ The forward-looking part of the review.
 - [ ] Variable and function names clear and descriptive. `i`, `tmp`, `data` are smells in non-trivial contexts.
 - [ ] Functions small and focused. Single responsibility, single level of abstraction.
 - [ ] Duplicated logic extracted appropriately. (Or left duplicated when extraction would be premature — three is usually the threshold.)
-- [ ] Code self-documenting or commented where business rules are non-obvious.
+- [ ] Code self-documenting, with comments where business rules are non-obvious.
+- [ ] Module/package structure logical and consistent with the surrounding codebase.
 - [ ] Abstractions at the right level. Not too abstract, not too concrete.
 - [ ] A new team member could understand this without the author explaining it.
 
@@ -110,6 +113,7 @@ The most under-reviewed section in most reviews.
 - [ ] Edge cases tested: boundary values, empty inputs, concurrent access where applicable.
 - [ ] Tests deterministic — no time dependencies, no test-ordering dependencies, no shared state.
 - [ ] Tests document expected behavior with descriptive names and clear assertions.
+- [ ] Coverage is adequate for the risk level of the code.
 - [ ] Test changes don't only assert what the implementation did; they assert what the requirement says.
 
 For deeper testing concerns, escalate to `tester`.
@@ -120,6 +124,7 @@ For deeper testing concerns, escalate to `tester`.
 - [ ] Breaking changes clearly marked and documented.
 - [ ] Input constraints validated and documented.
 - [ ] Error responses consistent and informative.
+- [ ] API versioning or compatibility impact considered when behavior changes.
 
 ## Finding Classification
 
@@ -157,6 +162,9 @@ One paragraph: overall assessment, recommended action (approve, request changes,
 
 ## What's Done Well
 Two or three genuine things. No performative praise.
+
+## Recommendations
+Prioritized follow-up list, only when useful.
 ```
 
 Omit empty severity sections. If there are no findings, say so plainly — don't manufacture feedback.
