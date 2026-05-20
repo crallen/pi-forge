@@ -1,11 +1,11 @@
 # pi-forge
 
 A [Pi](https://github.com/earendil-works/pi-coding-agent) extension for a
-role-based development workflow.
+workflow-oriented personal development environment.
 
-Two primary roles provide session-long framing. A library of specialist skills
-covers deep domain work on demand — the model reaches for them when appropriate,
-or you can invoke them directly with `/skill:name`.
+Two primary roles provide session-long framing. Task-focused skills provide
+specialized workflows and reference material on demand. Forge commands provide
+the user-facing workflow surface as they are added.
 
 ---
 
@@ -37,7 +37,7 @@ Roles provide session-long personas, injected into the system prompt for every t
 
 | Name | What it does |
 |---|---|
-| `tech-lead` | General-purpose implementation and coordination; uses specialist skills for deep domain work |
+| `tech-lead` | General-purpose implementation and coordination; uses task-focused skills for deep domain work |
 | `architect` | High-level design, architectural decisions, and structural planning — no implementation |
 | `none` | No role — Pi's default behavior |
 
@@ -60,21 +60,23 @@ to the model automatically and can also be invoked directly.
 
 | Skill | What it does |
 |---|---|
-| `coding-guardrails` | Cross-cutting execution discipline for any implementation work |
-| `spec` | Collaborative workflow for turning ideas into design specs |
-| `backend` | App-layer patterns: handlers, services, validation, auth |
-| `frontend` | UI components, styling, accessibility, responsive design |
-| `db` | Schema design, migrations, query optimization, transactions |
-| `devops` | CI/CD, Docker, Helm, Terraform/OpenTofu/Terragrunt, cloud CLI usage |
-| `docs` | Style guide and templates for READMEs, API docs, ADRs, changelogs |
+| `coding-guardrails` | Cross-cutting execution discipline for non-trivial implementation work |
+| `spec-writing` | Collaborative workflow for turning ideas into design specs |
+| `backend-patterns` | App-layer patterns: handlers, services, validation, auth |
+| `frontend-patterns` | UI components, styling, accessibility, responsive design |
+| `database-patterns` | Schema design, migrations, query optimization, transactions |
+| `infrastructure-workflows` | CI/CD, Docker, Helm, Terraform/OpenTofu/Terragrunt, cloud CLI usage |
+| `documentation` | Style guide and templates for READMEs, API docs, ADRs, changelogs |
 | `debugging-methodology` | Phased workflow for reproducing, diagnosing, and verifying bug fixes |
 | `git-conventions` | Conventional Commits format, branching model, commit hygiene |
-| `reviewer` | Structured code quality review with classified findings |
-| `auditor` | Security assessment with vulnerability taxonomy and remediation |
-| `tester` | Test strategy and execution: suites, coverage, mocking, failures |
-| `planner` | Breaks overwhelming work into sequential, time-boxed tasks |
+| `code-review` | Structured code quality review with classified findings |
+| `security-audit` | Evidence-backed security assessment with vulnerability taxonomy and remediation guidance |
+| `testing-workflow` | Test strategy and execution: suites, coverage, mocking, failures |
+| `work-planning` | Breaks overwhelming work into sequential, time-boxed tasks |
 
-Invoke directly: `/skill:reviewer`, `/skill:planner`, etc.
+Invoke directly: `/skill:code-review`, `/skill:security-audit`, etc.
+
+Old persona-style skill names such as `auditor`, `reviewer`, and `planner` were intentionally removed in favor of task-focused names.
 
 ---
 

@@ -1,7 +1,7 @@
 /**
  * Forge — Personal Development Workflow Extension
  *
- * Two primary roles for session-long framing, plus a library of specialist
+ * Two primary roles for session-long framing, plus a library of task-focused
  * skills the model loads on demand for deep domain work.
  *
  * Commands:
@@ -9,9 +9,10 @@
  *   /forge         Show active role and a preview of its system prompt
  *
  * Roles:     tech-lead (default), architect, none
- * Skills:    coding-guardrails, spec, backend, frontend, db, devops,
- *            docs, debugging-methodology, git-conventions, reviewer,
- *            auditor, tester, planner
+ * Skills:    coding-guardrails, spec-writing, backend-patterns,
+ *            frontend-patterns, database-patterns, infrastructure-workflows,
+ *            documentation, debugging-methodology, git-conventions,
+ *            code-review, security-audit, testing-workflow, work-planning
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";

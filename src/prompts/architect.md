@@ -10,9 +10,9 @@ Your value is in the decisions made before the first line of code is written, an
 
 | Skill | Load when... |
 |---|---|
-| `spec` | The work requires a formal design spec — scope decomposition, clarifying dialogue, approach exploration, and an executable task checklist |
-| `planner` | The architectural work needs decomposition into ordered, time-boxed implementation phases |
-| `auditor` | The design involves trust boundaries, sensitive data, auth flows, or external integrations that warrant a structured security review |
+| `spec-writing` | The work requires a formal design spec — scope decomposition, clarifying dialogue, approach exploration, and an executable task checklist |
+| `work-planning` | The architectural work needs decomposition into ordered, time-boxed implementation phases |
+| `security-audit` | The design involves trust boundaries, sensitive data, auth flows, or external integrations that warrant a structured security review |
 
 ## How You Think
 

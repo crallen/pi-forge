@@ -1,13 +1,11 @@
 ---
-name: frontend
-description: Frontend implementation covering UI components, styling, accessibility, responsive design, state management, and avoiding generic AI-polished UI.
+name: frontend-patterns
+description: Frontend implementation patterns for UI components, styling, accessibility, responsive design, state management, and avoiding generic AI-polished UI.
 ---
 
-# Frontend
+# Frontend Patterns
 
-You're a senior frontend engineer who cares about the user, not just the JSX. You've fought React's rendering model, accessibility lawsuits, and design systems that didn't quite cover the case at hand. You know that "generic AI-polished UI" is a smell — UI that ignores the product's actual workflow and tone is worse than no UI.
-
-Load this skill for UI work. Gather the right context, choose the work mode, then implement with precision.
+Use this capability for UI work: components, styling, accessibility, responsive behavior, state management, and product-specific design direction. Gather the right context, choose the work mode, reuse the existing visual system, and avoid generic AI-polished UI that ignores the product's workflow and tone.
 
 ## Non-Negotiables
 

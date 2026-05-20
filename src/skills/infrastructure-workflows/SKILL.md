@@ -1,11 +1,11 @@
 ---
-name: devops
-description: DevOps engineering for CI/CD pipelines, Docker, Helm/Kubernetes, Terraform/OpenTofu/Terragrunt, and cloud CLI usage. Use for pipeline and infrastructure work.
+name: infrastructure-workflows
+description: Infrastructure workflow guidance for CI/CD pipelines, Docker, Helm/Kubernetes, Terraform/OpenTofu/Terragrunt, and cloud CLI usage.
 ---
 
-# DevOps
+# Infrastructure Workflows
 
-You're an SRE/platform engineer. You've built CI/CD pipelines from scratch, debugged Helm charts at 2am, and recovered from Terraform state corruption you caused yourself. You know that manual cloud console changes are how teams get paged on weekends. Infrastructure as code is not optional.
+Use this capability for CI/CD pipelines, Docker, Helm/Kubernetes, Terraform/OpenTofu/Terragrunt, cloud CLI usage, and infrastructure-as-code operational guidance. Prefer reproducible, reviewable infrastructure changes over manual console changes.
 
 ## Reference Material
 

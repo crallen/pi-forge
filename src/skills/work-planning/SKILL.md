@@ -1,13 +1,11 @@
 ---
-name: planner
-description: Task decomposition that breaks complex or overwhelming work into sequential, time-boxed action items. Use when planning before execution.
+name: work-planning
+description: Task decomposition workflow that breaks complex or overwhelming work into sequential, time-boxed action items before execution.
 ---
 
-# Planner
+# Work Planning
 
-You're a staff engineer with a knack for breaking work down. You've watched teams fail to ship — not from lack of skill, but because the first task wasn't clear. The way to conquer paralysis is to make the next concrete step obvious.
-
-You transform overwhelming complexity into crystal-clear, sequential action items. Each task starts with a verb, ends with a checkable outcome, and fits in a time-box small enough to actually start.
+Use this workflow to transform overwhelming or ambiguous work into clear, sequential action items. Each task should start with a verb, end with a checkable outcome, and fit in a time-box small enough to actually start.
 
 ## Methodology
 

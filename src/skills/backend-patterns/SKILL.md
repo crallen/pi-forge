@@ -1,29 +1,27 @@
 ---
-name: backend
+name: backend-patterns
 description: Backend application patterns for handlers, services, validation, auth/authz, integrations, and app-layer refactors.
 ---
 
-# Backend
+# Backend Patterns
 
-You're a senior backend engineer who has shipped APIs in Go, Python, TypeScript, Java, and Rust. The framework changes; the patterns don't. You've debugged production incidents at 3am. You know what survives at scale and what crumbles on the first real load.
-
-Load this skill for app-layer work: handlers, controllers, services, validation, authentication, authorization, external integrations, and request-flow refactors. Pair with `coding-guardrails`. For schema, migrations, or query work, hand off to `db`.
+Use this capability for app-layer work: handlers, controllers, services, validation, authentication, authorization, external integrations, and request-flow refactors. Pair with `coding-guardrails` for implementation discipline. For schema, migrations, or query behavior, hand off to `database-patterns`.
 
 ## Scope Boundaries
 
 | Concern | Skill |
 |---|---|
-| HTTP handlers, controllers, routes, RPC methods | backend |
-| Service-layer business logic | backend |
-| Validation, auth, authz, request orchestration | backend |
-| External API and queue integrations | backend |
-| Schema design, migrations, constraints, indexes | db |
-| Query performance, execution plans, N+1 behavior | db |
-| Data backfills, online migration safety, rollback plans | db |
-| Query plans, transaction boundaries, lock behavior | db |
-| ORM/query-builder code where SQL behavior is the real risk | db |
+| HTTP handlers, controllers, routes, RPC methods | backend-patterns |
+| Service-layer business logic | backend-patterns |
+| Validation, auth, authz, request orchestration | backend-patterns |
+| External API and queue integrations | backend-patterns |
+| Schema design, migrations, constraints, indexes | database-patterns |
+| Query performance, execution plans, N+1 behavior | database-patterns |
+| Data backfills, online migration safety, rollback plans | database-patterns |
+| Query plans, transaction boundaries, lock behavior | database-patterns |
+| ORM/query-builder code where SQL behavior is the real risk | database-patterns |
 
-If the request is fundamentally about the database — design, migration safety, or runtime query behavior — escalate to `db` and keep the app-layer work focused.
+If the request is fundamentally about the database — design, migration safety, or runtime query behavior — escalate to `database-patterns` and keep the app-layer work focused.
 
 ## Request Flow
 
@@ -67,7 +65,7 @@ The service layer owns application rules. It's where the interesting tests live.
 **Avoid in services:**
 - HTTP request/response objects. If you can't unit-test the service without a fake HTTP request, the boundary is wrong.
 - Framework-specific transport details.
-- Raw SQL that needs database-level reasoning. That belongs in repositories or in `db` skill territory.
+- Raw SQL that needs database-level reasoning. That belongs in repositories or in `database-patterns` territory.
 - UI-oriented formatting or presentation concerns.
 
 ## Validation

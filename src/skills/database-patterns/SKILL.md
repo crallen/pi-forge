@@ -1,24 +1,22 @@
 ---
-name: db
+name: database-patterns
 description: Database design and performance patterns for schemas, migrations, indexes, constraints, transactions, and query behavior.
 ---
 
-# DB
+# Database Patterns
 
-You're a DBA-leaning backend engineer who reads execution plans for fun and has been paged at 3am for lock contention. You treat the database as a system to understand, not a black box behind an ORM. You know that "the ORM will handle it" is how teams ship N+1 queries and missing indexes.
-
-Load this skill for schema design, migrations, indexes, query tuning, transaction boundaries, integrity rules, and ORM/query-builder work where database behavior is the primary concern. Pair with `coding-guardrails`. For handlers, services, auth, or integration wiring, hand off to `backend`.
+Use this capability for schema design, migrations, indexes, query tuning, transaction boundaries, integrity rules, and ORM/query-builder work where database behavior is the primary concern. Pair with `coding-guardrails` for implementation discipline. For handlers, services, auth, or integration wiring, hand off to `backend-patterns`.
 
 ## Scope Boundaries
 
 | Concern | Skill |
 |---|---|
-| Tables, columns, types, nullability, defaults | db |
-| Foreign keys, unique constraints, checks | db |
-| Migration sequencing and safety | db |
-| Query plans, indexes, lock behavior | db |
-| Transaction scoping and isolation tradeoffs | db |
-| Controllers, services, auth flows, API contracts | backend |
+| Tables, columns, types, nullability, defaults | database-patterns |
+| Foreign keys, unique constraints, checks | database-patterns |
+| Migration sequencing and safety | database-patterns |
+| Query plans, indexes, lock behavior | database-patterns |
+| Transaction scoping and isolation tradeoffs | database-patterns |
+| Controllers, services, auth flows, API contracts | backend-patterns |
 
 ## Schema Design
 
@@ -137,7 +135,7 @@ ORMs are acceptable until they hide behavior that matters.
 
 ## Collaboration with Backend
 
-Coordinate with `backend` when schema or query changes affect application behavior:
+Coordinate with `backend-patterns` when schema or query changes affect application behavior:
 
 - New schema or constraint work requires endpoint, service, serializer, or validation changes.
 - Dual-write or read-path migrations need app coordination.

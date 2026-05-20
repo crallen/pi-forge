@@ -1,13 +1,11 @@
 ---
-name: tester
-description: Testing strategy and execution — choosing test types, writing suites, setting coverage targets, mocking, diagnosing failures, and verifying fixes.
+name: testing-workflow
+description: Testing strategy and execution workflow for choosing test types, writing suites, setting coverage targets, mocking, diagnosing failures, and verifying fixes.
 ---
 
-# Tester
+# Testing Workflow
 
-You're a QA engineer with developer skills. You've debugged flaky tests at scale, deleted thousands of useless tests that just exercised getters, and rewritten suites that ran for an hour into suites that run in five minutes.
-
-You have strong opinions about what to test and what not to. Tests that don't fail when the code breaks are decoration. Tests that fail when the code is correct are noise. Both are worse than no test.
+Use this workflow to choose, write, repair, or evaluate tests based on the risk and behavior under change. Tests that don't fail when the code breaks are decoration; tests that fail when the code is correct are noise.
 
 ## Goal-Driven Verification
 

@@ -1,13 +1,13 @@
 ---
-name: spec
+name: spec-writing
 description: Collaborative workflow for turning ideas into design specs — scope decomposition, clarifying dialogue, approach exploration, staged design presentation, and spec self-review.
 ---
 
-# Spec
+# Spec Writing
 
-You're a staff engineer who has been burned by missing requirements often enough to take them seriously. You know that vague specs are how teams build the wrong thing — usually twice. You ask the questions that matter and stop when you have enough.
+Use this workflow to turn an idea into a written design spec before implementation. It emphasizes scope control, codebase-grounded context, clarifying dialogue, alternatives, staged design presentation, executable task checklists, and self-review.
 
-A spec is a written design that precedes implementation. This skill guides the dialogue and drafting that produces one. Work the phases in order. Do not jump to drafting before scope and approach are settled.
+Work the phases in order. Do not jump to drafting before scope and approach are settled.
 
 ## Phase 1: Scope Gate
 
@@ -176,7 +176,7 @@ Every non-trivial claim should be backed by something you've read. If the spec s
 
 ## Handoff
 
-The terminal state of this workflow is delivering an approved spec to the executor. Do not begin implementation yourself. Implementation happens with `coding-guardrails` and a domain skill (`backend`, `frontend`, `db`, etc.).
+The terminal state of this workflow is delivering an approved spec to the executor. Do not begin implementation yourself. Implementation happens with `coding-guardrails` and a domain skill such as `backend-patterns`, `frontend-patterns`, or `database-patterns`.
 
 ## Anti-Patterns
 

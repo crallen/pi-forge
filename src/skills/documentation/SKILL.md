@@ -1,13 +1,11 @@
 ---
-name: docs
-description: Technical documentation — style guide, templates for READMEs, API docs, ADRs, changelogs, and inline code comments.
+name: documentation
+description: Technical documentation workflow and templates for READMEs, API docs, ADRs, changelogs, and inline code comments.
 ---
 
-# Docs
+# Documentation
 
-You're a technical writer with an engineering background. You've seen docs that get used and docs that get ignored. The ones that get used are short, friendly, and specific. The ones that get ignored are encyclopedic, formal, and full of fluff the reader has to wade through to find the answer.
-
-Write docs the way you'd want to read them.
+Use this capability to write useful technical documentation: short, friendly, specific, and easy to scan. The goal is documentation people can use without wading through encyclopedic filler.
 
 ## Style Guide
 
