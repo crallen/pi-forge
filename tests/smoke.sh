@@ -6,11 +6,12 @@
 # the way it was supposed to.
 #
 # Usage:
-#   ./tests/smoke.sh                          # run everything
-#   ./tests/smoke.sh roles                    # run any test with "roles" in its name
-#   ./tests/smoke.sh skill:database-patterns                 # filter by skill prefix
-#   ./tests/smoke.sh constraint               # only the constraint tests
-#   ./tests/smoke.sh infrastructure/terraform-refuse  # single test by full name
+#   ./tests/smoke.sh                                  # run everything
+#   ./tests/smoke.sh roles                            # run any test with "roles" in its name
+#   ./tests/smoke.sh skill:database-patterns          # filter by skill prefix
+#   ./tests/smoke.sh command:review                   # run /review command tests
+#   ./tests/smoke.sh constraint                       # only the constraint tests
+#   ./tests/smoke.sh infrastructure-terraform-refuse  # single test by full name
 #
 # Each test prints:
 #   - The test name
@@ -50,6 +51,7 @@ Arguments:
               part of the test name. Examples:
                 roles               all role tests
                 skill:database-patterns  all database-patterns skill tests
+                command:review      /review command workflow tests
                 constraint          all constraint tests
                 code-review         any test with "code-review" in the name
                 infrastructure-terraform    single test by full name
@@ -64,6 +66,7 @@ Flags:
 Examples:
   ./tests/smoke.sh                          run all tests
   ./tests/smoke.sh roles                    run only role tests
+  ./tests/smoke.sh command:review           run /review workflow tests
   ./tests/smoke.sh skill:database-patterns --inspect       run database tests + evaluate
   ./tests/smoke.sh --inspect                run all tests + evaluate
   ./tests/smoke.sh | less -R                paginate output
@@ -101,6 +104,7 @@ run() {
   local expected="$2"
   local prompt="$3"
   local flags="${4:-}"
+  local run_cwd="${5:-$WORK_DIR}"
 
   COUNT=$((COUNT + 1))
 
@@ -116,6 +120,9 @@ run() {
   if [[ -n "$flags" ]]; then
     echo "Flags:    $flags"
   fi
+  if [[ "$run_cwd" != "$WORK_DIR" ]]; then
+    echo "Cwd:      $run_cwd"
+  fi
   echo
   echo "--- Output ----------------------------------------------------------------------"
 
@@ -125,7 +132,7 @@ run() {
     # without overwhelming the context with long design documents.
     local raw_output
     # shellcheck disable=SC2086
-    raw_output="$(pi -e "$REPO_ROOT" $flags --print "$prompt" 2>&1)" \
+    raw_output="$(cd "$run_cwd" && pi -e "$REPO_ROOT" $flags --print "$prompt" 2>&1)" \
       || raw_output="(pi exited with non-zero status)"
     echo "$raw_output"
     local truncated
@@ -145,10 +152,34 @@ run() {
     } >> "$RESULT_FILE"
   else
     # shellcheck disable=SC2086
-    pi -e "$REPO_ROOT" $flags --print "$prompt" || echo "(pi exited with non-zero status)"
+    (cd "$run_cwd" && pi -e "$REPO_ROOT" $flags --print "$prompt") || echo "(pi exited with non-zero status)"
   fi
 
   echo "---------------------------------------------------------------------------------"
+}
+
+setup_review_repo() {
+  local repo="$WORK_DIR/review-repo"
+  mkdir -p "$repo"
+  (
+    cd "$repo" || exit 1
+    git init -q
+    git config user.email "forge-smoke@example.com"
+    git config user.name "Forge Smoke"
+    cat > app.js << 'EOF'
+function add(a, b) {
+  return a + b
+}
+EOF
+    git add app.js
+    git commit -q -m "feat: add sample app"
+    cat > app.js << 'EOF'
+function add(a, b) {
+  return a - b
+}
+EOF
+  )
+  echo "$repo"
 }
 
 # =============================================================================
@@ -187,6 +218,17 @@ EOF
 run "roles/tech-lead-knows-when-to-escalate" \
   "should exhibit security-audit skill behavior: structured methodology (recon, data flow, vuln analysis), severity taxonomy — not a generic tips list" \
   "$PROMPT_ESCALATE"
+
+# =============================================================================
+# Commands — workflow behavior
+# =============================================================================
+
+REVIEW_REPO="$(setup_review_repo)"
+run "command:review/current-diff" \
+  "print mode should show the generated /skill:code-review handoff prompt with git status, recent commits, and an app.js diff showing return a - b" \
+  "/review focus on correctness" \
+  "" \
+  "$REVIEW_REPO"
 
 # =============================================================================
 # Skills — domain behavior

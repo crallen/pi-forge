@@ -99,6 +99,21 @@ Tab completion works for role names.
 Show the active role and a preview of its system prompt — useful for verifying
 what's actually being injected.
 
+### `/review [scope] [focus]`
+
+Collect git context and start the `code-review` workflow.
+
+```
+/review                         — review staged and unstaged changes
+/review staged                  — review staged changes only
+/review unstaged                — review unstaged changes only
+/review branch main             — review changes since main
+/review focus on error handling — review current changes with extra focus
+```
+
+Forge collects branch, status, recent commits, diff stats, and relevant diffs,
+then sends a `/skill:code-review` handoff prompt. It does not modify files.
+
 ---
 
 ## Adding a role
