@@ -3,6 +3,25 @@ import { describeReviewScope } from "../context/git-context.js";
 
 export function buildReviewPrompt(scope: ReviewScope, context: GitReviewContext): string {
   const focus = scope.focus ? `\nAdditional review focus: ${scope.focus}\n` : "";
+  const fullCurrentStateReview = shouldReviewCurrentState(scope, context);
+
+  if (fullCurrentStateReview) {
+    return [
+      "/skill:code-review",
+      "",
+      "Review the current state of the codebase using the code-review workflow.",
+      "",
+      "Scope: full current codebase state. No staged or unstaged changes and no additional review focus were provided.",
+      "Instructions:",
+      "- Do not modify files.",
+      "- Inspect the repository as needed and base findings only on concrete evidence from the current files.",
+      "- Prioritize correctness, security, error handling, tests, and maintainability.",
+      "- Use the standard code-review output format from the skill.",
+      "- If repository context is incomplete, say exactly what context is missing.",
+      "",
+      formatGitContext(context),
+    ].join("\n");
+  }
 
   return [
     "/skill:code-review",
@@ -19,6 +38,16 @@ export function buildReviewPrompt(scope: ReviewScope, context: GitReviewContext)
     "",
     formatGitContext(context),
   ].join("\n");
+}
+
+function shouldReviewCurrentState(scope: ReviewScope, context: GitReviewContext): boolean {
+  return (
+    context.isGitRepo &&
+    scope.kind === "all" &&
+    !scope.focus &&
+    context.sections.length > 0 &&
+    context.sections.every((section) => !section.diff.trim())
+  );
 }
 
 function formatGitContext(context: GitReviewContext): string {
