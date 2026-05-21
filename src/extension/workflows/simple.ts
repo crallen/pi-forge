@@ -16,7 +16,7 @@ export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("commit", {
-    description: "Draft Conventional Commit messages for current changes",
+    description: "Create Conventional Commit commits for current changes",
     handler: async (args, ctx) => {
       const gitContext = await collectGitReviewContext(pi, ctx.cwd, parseReviewScope(""), ctx.signal);
       deliver(pi, ctx, buildCommitPrompt(args, gitContext), "commit");
