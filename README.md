@@ -146,6 +146,17 @@ Forge does not run `git add` or `git commit`.
 
 ---
 
+## Tools
+
+Forge also registers reusable context tools for the model:
+
+| Tool | What it does |
+|---|---|
+| `forge_git_context` | Collects git status, recent commits, diff stats, and diffs without mutating the repo |
+| `forge_repo_map` | Collects a safe file map with manifests, security-relevant candidates, and secret-like paths by name only |
+
+---
+
 ## Adding a role
 
 Add an entry to `src/roles.ts` and a corresponding `src/prompts/<name>.md`:

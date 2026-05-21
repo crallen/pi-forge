@@ -10,6 +10,9 @@
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
   },
+  "dependencies": {
+    "typebox": "^1.0.0"
+  },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "^5.0.0"
