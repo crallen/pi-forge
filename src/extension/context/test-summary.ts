@@ -22,10 +22,21 @@ export interface TestSummary {
   testFiles: string[];
   likelyFrameworks: string[];
   truncated: boolean;
+  errors: string[];
 }
 
 export async function collectTestSummary(root: string): Promise<TestSummary> {
-  const [inventory, testFilesResult] = await Promise.all([collectDependencyInventory(root), collectTestFiles(root)]);
+  const errors: string[] = [];
+  const [inventory, testFilesResult] = await Promise.all([
+    collectDependencyInventory(root).catch((err) => {
+      errors.push(`Dependency inventory failed: ${err instanceof Error ? err.message : String(err)}`);
+      return { root, packageManagers: [], manifests: [], packageJson: [], truncated: false, errors: [] } as Awaited<ReturnType<typeof collectDependencyInventory>>;
+    }),
+    collectTestFiles(root).catch((err) => {
+      errors.push(`Test file scan failed: ${err instanceof Error ? err.message : String(err)}`);
+      return { files: [], truncated: false };
+    }),
+  ]);
   const testScripts = inventory.packageJson?.flatMap((manifest) =>
     Object.entries(manifest.scripts)
       .filter(([name, command]) => /test|spec|vitest|jest|mocha|node --test/i.test(`${name} ${command}`))
@@ -39,6 +50,7 @@ export async function collectTestSummary(root: string): Promise<TestSummary> {
     testFiles: testFilesResult.files,
     likelyFrameworks: detectFrameworks(inventory.packageJson ?? [], testScripts, testFilesResult.files),
     truncated: inventory.truncated || testFilesResult.truncated,
+    errors,
   };
 }
 

@@ -78,6 +78,7 @@ export interface RepoMap {
   securityRelevantFiles: string[];
   secretLikeFiles: string[];
   truncated: boolean;
+  errors: string[];
 }
 
 export async function collectRepoMap(root: string): Promise<RepoMap> {
@@ -130,7 +131,13 @@ export async function collectRepoMap(root: string): Promise<RepoMap> {
     }
   }
 
-  await walk(root, 0);
+  const errors: string[] = [];
+
+  try {
+    await walk(root, 0);
+  } catch (err) {
+    errors.push(`Repository scan failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   return {
     root,
@@ -139,6 +146,7 @@ export async function collectRepoMap(root: string): Promise<RepoMap> {
     securityRelevantFiles,
     secretLikeFiles,
     truncated,
+    errors,
   };
 }
 

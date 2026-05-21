@@ -33,6 +33,7 @@ export interface DependencyInventory {
   packageManagers: string[];
   packageJson?: PackageJsonSummary[];
   truncated: boolean;
+  errors: string[];
 }
 
 export interface PackageJsonSummary {
@@ -78,7 +79,13 @@ export async function collectDependencyInventory(root: string): Promise<Dependen
     }
   }
 
-  await walk(root, 0);
+  const errors: string[] = [];
+
+  try {
+    await walk(root, 0);
+  } catch (err) {
+    errors.push(`Dependency scan failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   const packageJson = await Promise.all(
     manifests.filter((manifest) => nodePath.basename(manifest) === "package.json").map((manifest) => readPackageJson(root, manifest)),
@@ -90,6 +97,7 @@ export async function collectDependencyInventory(root: string): Promise<Dependen
     packageManagers: detectPackageManagers(manifests),
     packageJson: packageJson.filter((summary): summary is PackageJsonSummary => summary !== undefined),
     truncated,
+    errors,
   };
 }
 
