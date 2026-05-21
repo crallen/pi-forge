@@ -1,5 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import type { ForgePromptState } from "./forge-prompt.js";
+import { resolveRepositoryRoot } from "./context/repository-root.js";
 
 function applyStatus(ctx: { ui: { theme: any; setStatus: (id: string, text: string) => void } }) {
   const theme = ctx.ui.theme;
@@ -50,11 +51,15 @@ export function registerForge(pi: ExtensionAPI, promptState: ForgePromptState) {
         .map((tool) => tool.name)
         .sort();
 
+      const repoInfo = await collectRepoInfo(pi, ctx.cwd, ctx.signal);
+
       ctx.ui.notify(
         [
           `⚒  forge`,
           ``,
           `Default stance: Tech Lead`,
+          ``,
+          repoInfo,
           ``,
           `Commands: ${commands.join(", ") || "(none)"}`,
           `Tools: ${tools.join(", ") || "(none)"}`,
@@ -65,4 +70,39 @@ export function registerForge(pi: ExtensionAPI, promptState: ForgePromptState) {
       );
     },
   });
+}
+
+async function collectRepoInfo(pi: ExtensionAPI, cwd: string, signal?: AbortSignal): Promise<string> {
+  try {
+    const root = await resolveRepositoryRoot(pi, cwd, signal);
+    if (root === cwd && !(await isGitRepo(pi, cwd, signal))) {
+      return `Repository: not a git repo (cwd: ${cwd})`;
+    }
+
+    const [branchResult, statusResult] = await Promise.all([
+      pi.exec("git", ["branch", "--show-current"], { cwd: root, timeout: 5000, signal }),
+      pi.exec("git", ["status", "--short"], { cwd: root, timeout: 5000, signal }),
+    ]);
+
+    const branch = branchResult.code === 0 ? branchResult.stdout.trim() || "(detached HEAD)" : "(unknown)";
+    const statusLines = statusResult.code === 0 ? statusResult.stdout.trim().split("\n").filter(Boolean) : [];
+    const statusSummary = statusLines.length === 0 ? "clean" : `${statusLines.length} changed file${statusLines.length === 1 ? "" : "s"}`;
+
+    return [
+      `Repository: ${root}`,
+      `Branch: ${branch}`,
+      `Status: ${statusSummary}`,
+    ].join("\n");
+  } catch {
+    return `Repository: unknown (could not inspect git state)`;
+  }
+}
+
+async function isGitRepo(pi: ExtensionAPI, cwd: string, signal?: AbortSignal): Promise<boolean> {
+  try {
+    const result = await pi.exec("git", ["rev-parse", "--show-toplevel"], { cwd, timeout: 5000, signal });
+    return result.code === 0;
+  } catch {
+    return false;
+  }
 }

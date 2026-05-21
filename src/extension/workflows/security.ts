@@ -8,6 +8,16 @@ export function registerSecurityCommand(pi: ExtensionAPI) {
   pi.registerCommand("security", {
     description: "Start a security audit workflow with safe repository context",
 
+    getArgumentCompletions: (prefix) => {
+      const options = [
+        { value: "auth", label: "auth              Audit authentication and session flows" },
+        { value: "dependencies", label: "dependencies      Audit dependency vulnerabilities" },
+        { value: "config", label: "config            Audit security configuration" },
+        { value: "api", label: "api               Audit API and route security" },
+      ];
+      return options.filter((item) => item.value.startsWith(prefix));
+    },
+
     handler: async (args, ctx) => {
       const root = await resolveRepositoryRoot(pi, ctx.cwd, ctx.signal);
       const [repoMap, dependencyInventory] = await Promise.all([collectRepoMap(root), collectDependencyInventory(root)]);
