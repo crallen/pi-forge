@@ -1,5 +1,6 @@
 import type { DependencyInventory } from "../context/dependency-inventory.js";
 import type { RepoMap } from "../context/repo-map.js";
+import { list, recordList, section, subsection } from "./format.js";
 
 export function buildSecurityPrompt(args: string, repoMap: RepoMap, dependencyInventory: DependencyInventory): string {
   const focus = args.trim();
@@ -25,45 +26,29 @@ export function buildSecurityPrompt(args: string, repoMap: RepoMap, dependencyIn
 }
 
 function formatRepoMap(repoMap: RepoMap): string {
-  return [
-    "## Repository Context",
-    "",
+  return section(
+    "Repository Context",
     `Root: ${repoMap.root}`,
     repoMap.truncated ? "Note: repository file listing was truncated." : "Note: repository file listing completed within scan limits.",
-    "",
-    formatList("Dependency and build manifests", repoMap.manifests),
-    formatList("Security-relevant file candidates", repoMap.securityRelevantFiles),
-    formatList("Secret-like files intentionally not read", repoMap.secretLikeFiles),
-    formatList("Repository file sample", repoMap.files.slice(0, 120)),
-  ].filter(Boolean).join("\n");
+    subsection("Dependency and build manifests", list(repoMap.manifests, "(none discovered)")),
+    subsection("Security-relevant file candidates", list(repoMap.securityRelevantFiles, "(none discovered)")),
+    subsection("Secret-like files intentionally not read", list(repoMap.secretLikeFiles, "(none discovered)")),
+    subsection("Repository file sample", list(repoMap.files.slice(0, 120), "(none discovered)")),
+  );
 }
 
 function formatDependencyInventory(inventory: DependencyInventory): string {
-  return [
-    "## Dependency Inventory",
-    "",
+  return section(
+    "Dependency Inventory",
     inventory.truncated ? "Note: dependency inventory was truncated." : "Note: dependency inventory completed within scan limits.",
-    "",
-    formatList("Package managers", inventory.packageManagers),
-    formatList("Manifests", inventory.manifests),
-    ...(inventory.packageJson ?? []).map((manifest) => [
-      `### package.json: ${manifest.path}`,
-      "",
-      formatRecord("Scripts", manifest.scripts),
-      formatList("Dependencies", manifest.dependencies),
-      formatList("Dev dependencies", manifest.devDependencies),
-      formatList("Peer dependencies", manifest.peerDependencies),
-    ].filter(Boolean).join("\n")),
-  ].filter(Boolean).join("\n");
-}
-
-function formatRecord(title: string, items: Record<string, string>): string {
-  const entries = Object.entries(items);
-  if (entries.length === 0) return `#### ${title}\n\n(none discovered)\n`;
-  return [`#### ${title}`, "", ...entries.map(([key, value]) => `- ${key}: ${value}`), ""].join("\n");
-}
-
-function formatList(title: string, items: string[]): string {
-  if (items.length === 0) return `### ${title}\n\n(none discovered)\n`;
-  return [`### ${title}`, "", ...items.map((item) => `- ${item}`), ""].join("\n");
+    subsection("Package managers", list(inventory.packageManagers, "(none discovered)")),
+    subsection("Manifests", list(inventory.manifests, "(none discovered)")),
+    ...(inventory.packageJson ?? []).map((manifest) => subsection(
+      `package.json: ${manifest.path}`,
+      subsection("Scripts", recordList(manifest.scripts, "(none discovered)")),
+      subsection("Dependencies", list(manifest.dependencies, "(none discovered)")),
+      subsection("Dev dependencies", list(manifest.devDependencies, "(none discovered)")),
+      subsection("Peer dependencies", list(manifest.peerDependencies, "(none discovered)")),
+    )),
+  );
 }

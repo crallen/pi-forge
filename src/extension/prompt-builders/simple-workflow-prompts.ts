@@ -1,6 +1,7 @@
 import type { GitReviewContext } from "../context/git-context.js";
 import type { RepoMap } from "../context/repo-map.js";
 import type { TestSummary } from "../context/test-summary.js";
+import { fenced, list as bulletList, section, subsection } from "./format.js";
 
 export function buildTestPrompt(args: string, testSummary: TestSummary): string {
   return [
@@ -73,19 +74,18 @@ export function buildCommitPrompt(args: string, gitContext: GitReviewContext): s
 }
 
 function formatTestSummary(summary: TestSummary): string {
-  return [
-    "## Test Context",
-    "",
+  return section(
+    "Test Context",
     `Root: ${summary.root}`,
     summary.truncated ? "Note: test context was truncated." : "Note: test context completed within scan limits.",
-    "",
-    list("Package managers", summary.packageManagers),
-    list("Likely frameworks", summary.likelyFrameworks),
-    list("Test files", summary.testFiles),
-    "### Test scripts",
-    "",
-    summary.testScripts.length === 0 ? "(none)" : summary.testScripts.map((script) => `- ${script.manifest} ${script.name}: ${script.command}`).join("\n"),
-  ].filter(Boolean).join("\n");
+    subsection("Package managers", bulletList(summary.packageManagers)),
+    subsection("Likely frameworks", bulletList(summary.likelyFrameworks)),
+    subsection("Test files", bulletList(summary.testFiles)),
+    subsection(
+      "Test scripts",
+      summary.testScripts.length === 0 ? "(none)" : summary.testScripts.map((script) => `- ${script.manifest} ${script.name}: ${script.command}`).join("\n"),
+    ),
+  );
 }
 
 function formatRepoMap(repoMap: RepoMap): string {
@@ -136,10 +136,5 @@ function formatGitContext(context: GitReviewContext): string {
 }
 
 function list(title: string, items: string[]): string {
-  if (items.length === 0) return `### ${title}\n\n(none)\n`;
-  return [`### ${title}`, "", ...items.map((item) => `- ${item}`), ""].join("\n");
-}
-
-function fenced(text: string): string {
-  return ["```", text, "```"].join("\n");
+  return subsection(title, bulletList(items));
 }

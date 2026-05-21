@@ -1,5 +1,6 @@
 import type { GitReviewContext, ReviewScope } from "../context/git-context.js";
 import { describeReviewScope } from "../context/git-context.js";
+import { fenced, list, section, subsection } from "./format.js";
 
 export function buildReviewPrompt(scope: ReviewScope, context: GitReviewContext): string {
   const focus = scope.focus ? `\nAdditional review focus: ${scope.focus}\n` : "";
@@ -53,57 +54,36 @@ function shouldReviewCurrentState(scope: ReviewScope, context: GitReviewContext)
 
 function formatGitContext(context: GitReviewContext): string {
   if (!context.isGitRepo) {
-    return [
-      "## Git Context",
-      "",
+    return section(
+      "Git Context",
       `Working directory: ${context.cwd}`,
       "Git repository: no",
-      "",
       "Forge could not collect git diff context. Ask the user for a diff, file paths, or a narrower review scope before making findings.",
-      formatList("Collection errors", context.errors),
-    ].filter(Boolean).join("\n");
+      context.errors.length > 0 ? subsection("Collection errors", list(context.errors)) : "",
+    );
   }
 
   return [
-    "## Git Context",
-    "",
-    `Repository root: ${context.repoRoot}`,
-    `Branch: ${context.branch ?? "(unknown)"}`,
-    "",
-    "### Status",
-    fenced(context.status || "(clean)"),
-    "",
-    "### Recent Commits",
-    fenced(context.recentCommits || "(no recent commits found)"),
-    "",
-    formatList("Notes", context.notes),
-    formatList("Collection errors", context.errors),
-    "",
-    "## Diff Context",
-    "",
-    ...context.sections.map(formatSection),
+    section(
+      "Git Context",
+      `Repository root: ${context.repoRoot}`,
+      `Branch: ${context.branch ?? "(unknown)"}`,
+      subsection("Status", fenced(context.status || "(clean)")),
+      subsection("Recent Commits", fenced(context.recentCommits || "(no recent commits found)")),
+      context.notes.length > 0 ? subsection("Notes", list(context.notes)) : "",
+      context.errors.length > 0 ? subsection("Collection errors", list(context.errors)) : "",
+    ),
+    section("Diff Context", ...context.sections.map(formatSection)),
   ].filter(Boolean).join("\n");
 }
 
-function formatSection(section: GitReviewContext["sections"][number]): string {
-  return [
-    `### ${section.label}`,
-    "",
-    `Command: \`${section.command}\``,
-    "",
+function formatSection(diffSection: GitReviewContext["sections"][number]): string {
+  return subsection(
+    diffSection.label,
+    `Command: \`${diffSection.command}\``,
     "Diff stat:",
-    fenced(section.stat || "(empty)"),
-    "",
+    fenced(diffSection.stat || "(empty)"),
     "Diff:",
-    fenced(section.diff || "(empty)"),
-  ].join("\n");
-}
-
-function formatList(title: string, items: string[]): string {
-  if (items.length === 0) return "";
-  return [`### ${title}`, "", ...items.map((item) => `- ${item}`), ""].join("\n");
-}
-
-function fenced(text: string): string {
-  return ["```", text, "```"].join("\n");
+    fenced(diffSection.diff || "(empty)"),
+  );
 }
