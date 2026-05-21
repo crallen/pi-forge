@@ -150,6 +150,6 @@ export async function collectRepoMap(root: string): Promise<RepoMap> {
   };
 }
 
-function isSecretLike(name: string, path: string): boolean {
+export function isSecretLike(name: string, path: string): boolean {
   return SECRET_PATTERNS.some((pattern) => pattern.test(name) || pattern.test(path));
 }

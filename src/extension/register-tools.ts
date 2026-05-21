@@ -2,6 +2,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type, type Static } from "typebox";
 import { collectDependencyInventory } from "./context/dependency-inventory.js";
 import { collectGitReviewContext, parseReviewScope } from "./context/git-context.js";
+import { readFile } from "./context/read-file.js";
 import { collectRepoMap } from "./context/repo-map.js";
 import { resolveRepositoryRoot } from "./context/repository-root.js";
 import { collectTestSummary } from "./context/test-summary.js";
@@ -20,6 +21,15 @@ type DependencyInventoryInput = Static<typeof dependencyInventorySchema>;
 
 const testSummarySchema = Type.Object({});
 type TestSummaryInput = Static<typeof testSummarySchema>;
+
+const readFileSchema = Type.Object({
+  path: Type.String({ description: "Path to the file to read, relative to the repository root" }),
+  offset: Type.Optional(Type.Number({ description: "Line number to start reading from (1-indexed)" })),
+  limit: Type.Optional(Type.Number({ description: "Maximum number of lines to read" })),
+});
+type ReadFileInput = Static<typeof readFileSchema>;
+
+const MAX_LINES_DEFAULT = 2000;
 
 export function registerTools(pi: ExtensionAPI) {
   pi.registerTool({
@@ -74,6 +84,59 @@ export function registerTools(pi: ExtensionAPI) {
       return {
         content: [{ type: "text", text: JSON.stringify(inventory, null, 2) }],
         details: inventory,
+      };
+    },
+  });
+
+  pi.registerTool({
+    name: "forge_read_file",
+    label: "Forge Read File",
+    description: "Read the contents of a file in the repository. Supports text files. Output is truncated to 2000 lines or 40KB (whichever is hit first). Use offset/limit for large files. Secret-like paths are refused.",
+    promptSnippet: "Read the contents of a file",
+    promptGuidelines: [
+      "Use forge_read_file to read source files before forming review findings, security findings, hypotheses, or test plans.",
+      "Use offset/limit to page through large files rather than reading the whole file at once.",
+      "Do not attempt to read secret-bearing files (.env, *.pem, *.key, *.tfvars, credential files). Those paths are blocked.",
+    ],
+    parameters: readFileSchema,
+    async execute(_toolCallId, params: ReadFileInput, _signal, _onUpdate, ctx) {
+      const root = await resolveRepositoryRoot(pi, ctx.cwd);
+      const result = await readFile(root, params.path);
+
+      if (result.error) {
+        return {
+          content: [{ type: "text", text: result.error }],
+          details: result,
+        };
+      }
+
+      // Apply line-based offset/limit if requested
+      let content = result.content;
+      if (params.offset !== undefined || params.limit !== undefined) {
+        const lines = content.split("\n");
+        const start = Math.max(0, (params.offset ?? 1) - 1);
+        const end = params.limit !== undefined ? start + params.limit : start + MAX_LINES_DEFAULT;
+        content = lines.slice(start, end).join("\n");
+      } else {
+        // Default line cap
+        const lines = content.split("\n");
+        if (lines.length > MAX_LINES_DEFAULT) {
+          content = lines.slice(0, MAX_LINES_DEFAULT).join("\n");
+        }
+      }
+
+      const text = [
+        `File: ${result.path}`,
+        `Size: ${result.sizeBytes} bytes${result.truncated ? " (truncated at 40KB)" : ""}`,
+        ``,
+        "```",
+        content,
+        "```",
+      ].join("\n");
+
+      return {
+        content: [{ type: "text", text }],
+        details: result,
       };
     },
   });

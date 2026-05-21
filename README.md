@@ -170,6 +170,7 @@ Forge also registers reusable context tools for the model:
 |---|---|
 | `forge_git_context` | Collects git status, recent commits, diff stats, and diffs without mutating the repo |
 | `forge_repo_map` | Collects a safe file map with manifests, security-relevant candidates, and secret-like paths by name only |
+| `forge_read_file` | Reads a source file within the repo root; blocks secret-like paths and truncates large files |
 | `forge_dependency_inventory` | Collects dependency manifests, package manager hints, scripts, and dependency names without installing packages |
 | `forge_test_summary` | Collects test scripts, likely frameworks, and test file paths without running tests |
 
