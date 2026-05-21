@@ -7,6 +7,17 @@ description: Testing strategy and execution workflow for choosing test types, wr
 
 Use this workflow to choose, write, repair, or evaluate tests based on the risk and behavior under change. Tests that don't fail when the code breaks are decoration; tests that fail when the code is correct are noise.
 
+## Read Before You Test
+
+Before writing a single test, read the code under test. Not the interface, not the file name — the actual implementation. Understanding what the code does, what paths exist, and what can fail is what separates a useful test suite from one that only passes because it tests the happy path.
+
+- Read the source file(s) being tested.
+- Trace the execution paths: normal, edge, and error cases.
+- Read any existing tests to understand what's already covered and what conventions the project uses.
+- Read the types, schemas, or interfaces the code depends on.
+
+**You cannot write meaningful tests for code you haven't read.**
+
 ## Goal-Driven Verification
 
 Tests aren't coverage artifacts. They're how vague requirements become verifiable outcomes.

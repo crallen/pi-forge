@@ -40,6 +40,8 @@ Do not move past Phase 1 until you can reproduce the bug or have enough informat
 
 Collect evidence before forming theories. Theory without evidence becomes confirmation bias.
 
+**Hard rule — read the code before forming hypotheses.** When you have a reproduction, read the code path that executes for that input. Don't theorize about what the code might be doing — read what it actually does. This means reading the relevant source files, not just reasoning from error messages or git log output.
+
 ### Read the Errors Carefully
 
 - Stack traces tell you the call chain. Read bottom-up — the bottom of the trace is where the error originated.

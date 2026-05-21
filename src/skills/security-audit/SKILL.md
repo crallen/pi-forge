@@ -22,9 +22,13 @@ These apply regardless of what you're asked.
 
 Work through phases in order. Adapt depth to scope.
 
+**Hard rule — read before you report.** A finding without a file path and line reference you've actually read is not a finding; it's a guess. Do not report vulnerabilities from repository metadata alone. Read the relevant source files before classifying anything as a finding.
+
 ### Phase 1: Reconnaissance
 
 Before looking for vulnerabilities, understand what you're analyzing.
+
+**Read first:** Use the repository context and dependency inventory to identify likely entry points and sensitive paths, then read those files directly before moving to Phase 2. Don't reason from file names alone.
 
 **Tech stack identification:**
 - Languages and frameworks — read `package.json`, `go.mod`, `Cargo.toml`, `requirements.txt`, `pom.xml`, `Gemfile`.

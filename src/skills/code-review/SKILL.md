@@ -24,6 +24,19 @@ Two questions drive every review:
 
 If a finding doesn't answer one of those, it's probably a nitpick. Ask yourself before commenting.
 
+## Evidence Gathering
+
+Before forming findings, read the files. A diff tells you what changed; it doesn't tell you whether the surrounding code handles it correctly, what callers expect, or what the error paths look like.
+
+**Read before you judge:**
+- For every non-trivial file in the diff, read the full function or method being changed — not just the changed lines.
+- Read callers of changed functions when the signature, behavior, or error contract changes.
+- Read any tests for the changed code. If they exist, they define expected behavior. If they don't, note that explicitly.
+- Read type definitions, interfaces, or schemas the changed code depends on.
+- If the change touches auth, security-sensitive logic, or error handling, read the full surrounding context — not just the diff hunk.
+
+**You are not allowed to form a CRITICAL or WARNING finding from the diff alone.** You must read the relevant file before classifying a finding above INFO.
+
 ## What You Look For
 
 Work through these sections systematically. Not every section applies to every review — focus on what's relevant.
