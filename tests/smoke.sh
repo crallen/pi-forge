@@ -281,6 +281,13 @@ run "command:review/unstaged" \
   "" \
   "$REVIEW_REPO_MIXED"
 
+REVIEW_REPO_CLEAN="$(setup_review_repo clean)"
+run "command:review/clean-full-state" \
+  "print mode should show a /skill:code-review handoff for reviewing the current state of the codebase, not a missing-diff message" \
+  "/review" \
+  "" \
+  "$REVIEW_REPO_CLEAN"
+
 run "command:review/non-git" \
   "print mode should degrade gracefully, say the cwd is not a git repository, and ask for diff/file paths instead of inventing findings" \
   "/review"
@@ -311,7 +318,7 @@ run "command:debug/git-context" \
   "$REVIEW_REPO_UNSTAGED"
 
 run "command:commit/git-context" \
-  "print mode should show a /skill:git-conventions handoff and explicitly avoid running git commit" \
+  "print mode should show a /skill:git-conventions handoff that creates a commit for one logical change, asks before splitting, avoids committing when there are no changes, and does not rewrite history" \
   "/commit" \
   "" \
   "$REVIEW_REPO_UNSTAGED"

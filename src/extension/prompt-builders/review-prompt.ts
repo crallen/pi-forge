@@ -45,6 +45,7 @@ function shouldReviewCurrentState(scope: ReviewScope, context: GitReviewContext)
     context.isGitRepo &&
     scope.kind === "all" &&
     !scope.focus &&
+    !context.status?.trim() &&
     context.sections.length > 0 &&
     context.sections.every((section) => !section.diff.trim())
   );
