@@ -167,6 +167,12 @@ setup_security_repo() {
   "dependencies": { "express": "latest", "jsonwebtoken": "latest" }
 }
 EOF
+  mkdir -p "$repo/tests"
+  cat > "$repo/tests/auth.test.js" << 'EOF'
+import test from 'node:test'
+
+test('auth placeholder', () => {})
+EOF
   cat > "$repo/src/routes/auth.js" << 'EOF'
 app.post('/login', (req, res) => {
   const user = db.query("SELECT * FROM users WHERE email='" + req.body.email + "'")
@@ -322,6 +328,18 @@ run "command:commit/git-context" \
   "/commit" \
   "" \
   "$REVIEW_REPO_UNSTAGED"
+
+run "tool:dependency-inventory" \
+  "should use forge_dependency_inventory and report package.json, npm/package metadata, express, jsonwebtoken, and the test script without running installs or audits" \
+  "Use forge_dependency_inventory to summarize this repo's dependency context." \
+  "" \
+  "$SECURITY_REPO"
+
+run "tool:test-summary" \
+  "should use forge_test_summary and report the node --test script plus tests/auth.test.js without running the test suite" \
+  "Use forge_test_summary to summarize this repo's test setup." \
+  "" \
+  "$SECURITY_REPO"
 
 # =============================================================================
 # Skills — domain behavior

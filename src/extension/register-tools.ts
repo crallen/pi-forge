@@ -48,8 +48,9 @@ export function registerTools(pi: ExtensionAPI) {
       "Use forge_repo_map when a Forge workflow needs repository structure, manifests, security-relevant file candidates, or secret-like path metadata.",
     ],
     parameters: repoMapSchema,
-    async execute(_toolCallId, _params: RepoMapInput, _signal, _onUpdate, ctx) {
-      const repoMap = await collectRepoMap(ctx.cwd);
+    async execute(_toolCallId, _params: RepoMapInput, signal, _onUpdate, ctx) {
+      const root = await resolveRepositoryRoot(pi, ctx.cwd, signal);
+      const repoMap = await collectRepoMap(root);
       return {
         content: [{ type: "text", text: JSON.stringify(repoMap, null, 2) }],
         details: repoMap,
@@ -66,8 +67,9 @@ export function registerTools(pi: ExtensionAPI) {
       "Use forge_dependency_inventory when a workflow needs package manager, manifest, script, or dependency-name context without running installs or audits.",
     ],
     parameters: dependencyInventorySchema,
-    async execute(_toolCallId, _params: DependencyInventoryInput, _signal, _onUpdate, ctx) {
-      const inventory = await collectDependencyInventory(ctx.cwd);
+    async execute(_toolCallId, _params: DependencyInventoryInput, signal, _onUpdate, ctx) {
+      const root = await resolveRepositoryRoot(pi, ctx.cwd, signal);
+      const inventory = await collectDependencyInventory(root);
       return {
         content: [{ type: "text", text: JSON.stringify(inventory, null, 2) }],
         details: inventory,
@@ -84,12 +86,23 @@ export function registerTools(pi: ExtensionAPI) {
       "Use forge_test_summary when a workflow needs test scripts, likely frameworks, or test file layout before planning or writing tests.",
     ],
     parameters: testSummarySchema,
-    async execute(_toolCallId, _params: TestSummaryInput, _signal, _onUpdate, ctx) {
-      const summary = await collectTestSummary(ctx.cwd);
+    async execute(_toolCallId, _params: TestSummaryInput, signal, _onUpdate, ctx) {
+      const root = await resolveRepositoryRoot(pi, ctx.cwd, signal);
+      const summary = await collectTestSummary(root);
       return {
         content: [{ type: "text", text: JSON.stringify(summary, null, 2) }],
         details: summary,
       };
     },
   });
+}
+
+async function resolveRepositoryRoot(pi: ExtensionAPI, cwd: string, signal?: AbortSignal): Promise<string> {
+  try {
+    const result = await pi.exec("git", ["rev-parse", "--show-toplevel"], { cwd, timeout: 5000, signal });
+    if (result.code === 0) return result.stdout.trim() || cwd;
+  } catch {
+    // Fall back to cwd outside git repositories or when git is unavailable.
+  }
+  return cwd;
 }
