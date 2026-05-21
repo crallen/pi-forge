@@ -1,6 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { collectGitReviewContext, parseReviewScope } from "../context/git-context.js";
 import { collectRepoMap } from "../context/repo-map.js";
+import { resolveRepositoryRoot } from "../context/repository-root.js";
 import { buildCommitPrompt, buildDebugPrompt, buildSpecPrompt, buildTestPrompt } from "../prompt-builders/simple-workflow-prompts.js";
 
 export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
@@ -33,7 +34,8 @@ function registerRepoMapCommand(
   pi.registerCommand(name, {
     description,
     handler: async (args, ctx) => {
-      const repoMap = await collectRepoMap(ctx.cwd);
+      const root = await resolveRepositoryRoot(pi, ctx.cwd, ctx.signal);
+      const repoMap = await collectRepoMap(root);
       deliver(pi, ctx, builder(args, repoMap), name);
     },
   });

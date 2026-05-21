@@ -3,6 +3,7 @@ import { Type, type Static } from "typebox";
 import { collectDependencyInventory } from "./context/dependency-inventory.js";
 import { collectGitReviewContext, parseReviewScope } from "./context/git-context.js";
 import { collectRepoMap } from "./context/repo-map.js";
+import { resolveRepositoryRoot } from "./context/repository-root.js";
 import { collectTestSummary } from "./context/test-summary.js";
 
 const gitContextSchema = Type.Object({
@@ -95,14 +96,4 @@ export function registerTools(pi: ExtensionAPI) {
       };
     },
   });
-}
-
-async function resolveRepositoryRoot(pi: ExtensionAPI, cwd: string, signal?: AbortSignal): Promise<string> {
-  try {
-    const result = await pi.exec("git", ["rev-parse", "--show-toplevel"], { cwd, timeout: 5000, signal });
-    if (result.code === 0) return result.stdout.trim() || cwd;
-  } catch {
-    // Fall back to cwd outside git repositories or when git is unavailable.
-  }
-  return cwd;
 }
