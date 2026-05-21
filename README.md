@@ -152,6 +152,29 @@ Collect the diff between the current branch and a base branch, then draft a PR t
 
 The base argument tab-completes against local branches. Forge writes a PR title in Conventional Commit style and a description with **What**, **How**, **Testing**, and optional **Notes** sections. It does not modify files.
 
+### `/standup [since]`
+
+Summarize recent commits as a brief engineering standup entry.
+
+```
+/standup                — commits since yesterday (default)
+/standup today          — commits from today only
+/standup 3 days ago     — commits from the last 3 days
+/standup 1 week ago     — commits from the last week
+/standup v1.2.0         — commits since a specific tag or ref
+```
+
+### `/changelog [since]`
+
+Generate a [Keep a Changelog](https://keepachangelog.com) entry from recent commits.
+
+```
+/changelog                         — commits since last tag (or 1 month ago)
+/changelog 1 week ago              — commits from the last week
+/changelog --version 1.3.0         — specify target version
+/changelog --version 1.3.0 v1.2.0  — specify version and base ref
+```
+
 ### `/commit [instructions]`
 
 Collect git context and create Conventional Commit commits using `git-conventions`.
