@@ -127,6 +127,23 @@ Forge lists dependency manifests, security-relevant file candidates, and
 secret-like files by path only. It does not read secret-bearing file contents
 and does not modify files.
 
+### `/test [request]`
+
+Collect repository test context and start the `testing-workflow` skill.
+
+### `/debug [symptom]`
+
+Collect recent git context and start the reproduction-first `debugging-methodology` skill.
+
+### `/spec [idea]`
+
+Collect repository context and start the staged `spec-writing` workflow.
+
+### `/commit [instructions]`
+
+Collect git context and draft Conventional Commit messages using `git-conventions`.
+Forge does not run `git add` or `git commit`.
+
 ---
 
 ## Adding a role

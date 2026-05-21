@@ -302,6 +302,30 @@ run "command:security/repo-context" \
   "" \
   "$SECURITY_REPO"
 
+run "command:test/repo-context" \
+  "print mode should show a /skill:testing-workflow handoff with package.json and test guidance" \
+  "/test plan coverage for auth routes" \
+  "" \
+  "$SECURITY_REPO"
+
+run "command:spec/repo-context" \
+  "print mode should show a /skill:spec-writing handoff grounded in repository context" \
+  "/spec add OAuth login" \
+  "" \
+  "$SECURITY_REPO"
+
+run "command:debug/git-context" \
+  "print mode should show a /skill:debugging-methodology handoff with reproduction-first instructions and git context" \
+  "/debug intermittent auth failure" \
+  "" \
+  "$REVIEW_REPO_UNSTAGED"
+
+run "command:commit/git-context" \
+  "print mode should show a /skill:git-conventions handoff and explicitly avoid running git commit" \
+  "/commit" \
+  "" \
+  "$REVIEW_REPO_UNSTAGED"
+
 # =============================================================================
 # Skills — domain behavior
 # =============================================================================
