@@ -21,6 +21,12 @@ export function registerSecurityCommand(pi: ExtensionAPI) {
     handler: async (args, ctx) => {
       const root = await resolveRepositoryRoot(pi, ctx.cwd, ctx.signal);
       const [repoMap, dependencyInventory] = await Promise.all([collectRepoMap(root), collectDependencyInventory(root)]);
+
+      const errors = [...repoMap.errors, ...dependencyInventory.errors];
+      if (ctx.hasUI && errors.length > 0) {
+        ctx.ui.notify(`/security: context collection had errors — results may be incomplete:\n${errors.map((e) => `• ${e}`).join("\n")}`, "warning");
+      }
+
       const prompt = buildSecurityPrompt(args, repoMap, dependencyInventory);
 
       if (!ctx.hasUI) {

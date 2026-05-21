@@ -3,7 +3,10 @@ import { collectGitReviewContext, parseReviewScope } from "../context/git-contex
 import { collectRepoMap } from "../context/repo-map.js";
 import { resolveRepositoryRoot } from "../context/repository-root.js";
 import { collectTestSummary } from "../context/test-summary.js";
-import { buildCommitPrompt, buildDebugPrompt, buildSpecPrompt, buildTestPrompt } from "../prompt-builders/simple-workflow-prompts.js";
+import { buildTestPrompt } from "../prompt-builders/test-prompt.js";
+import { buildDebugPrompt } from "../prompt-builders/debug-prompt.js";
+import { buildSpecPrompt } from "../prompt-builders/spec-prompt.js";
+import { buildCommitPrompt } from "../prompt-builders/commit-prompt.js";
 
 export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
   pi.registerCommand("test", {
@@ -19,6 +22,7 @@ export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
     handler: async (args, ctx) => {
       const root = await resolveRepositoryRoot(pi, ctx.cwd, ctx.signal);
       const testSummary = await collectTestSummary(root);
+      warnIfErrors(ctx, testSummary.errors, "test");
       deliver(pi, ctx, buildTestPrompt(args, testSummary), "test");
     },
   });
@@ -37,6 +41,7 @@ export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
     handler: async (args, ctx) => {
       const root = await resolveRepositoryRoot(pi, ctx.cwd, ctx.signal);
       const repoMap = await collectRepoMap(root);
+      warnIfErrors(ctx, repoMap.errors, "spec");
       deliver(pi, ctx, buildSpecPrompt(args, repoMap), "spec");
     },
   });
@@ -54,6 +59,7 @@ export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
     },
     handler: async (args, ctx) => {
       const gitContext = await collectGitReviewContext(pi, ctx.cwd, parseReviewScope(""), ctx.signal);
+      warnIfErrors(ctx, gitContext.errors, "debug");
       deliver(pi, ctx, buildDebugPrompt(args, gitContext), "debug");
     },
   });
@@ -72,6 +78,7 @@ export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
     },
     handler: async (args, ctx) => {
       const gitContext = await collectGitReviewContext(pi, ctx.cwd, parseReviewScope(""), ctx.signal);
+      warnIfErrors(ctx, gitContext.errors, "commit");
       deliver(pi, ctx, buildCommitPrompt(args, gitContext), "commit");
     },
   });
@@ -91,6 +98,15 @@ function registerRepoMapCommand(
       deliver(pi, ctx, builder(args, repoMap), name);
     },
   });
+}
+
+function warnIfErrors(
+  ctx: { hasUI: boolean; ui: { notify(message: string, level?: "info" | "warning" | "error"): void } },
+  errors: string[],
+  commandName: string,
+) {
+  if (!ctx.hasUI || errors.length === 0) return;
+  ctx.ui.notify(`/${commandName}: context collection had errors — results may be incomplete:\n${errors.map((e) => `• ${e}`).join("\n")}`, "warning");
 }
 
 function deliver(

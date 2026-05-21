@@ -18,6 +18,11 @@ export function registerReviewCommand(pi: ExtensionAPI) {
     handler: async (args, ctx) => {
       const scope = parseReviewScope(args);
       const context = await collectGitReviewContext(pi, ctx.cwd, scope, ctx.signal);
+
+      if (ctx.hasUI && context.errors.length > 0) {
+        ctx.ui.notify(`/review: context collection had errors — results may be incomplete:\n${context.errors.map((e) => `• ${e}`).join("\n")}`, "warning");
+      }
+
       const prompt = buildReviewPrompt(scope, context);
 
       if (!ctx.hasUI) {
