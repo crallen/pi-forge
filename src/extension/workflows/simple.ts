@@ -2,10 +2,19 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { collectGitReviewContext, parseReviewScope } from "../context/git-context.js";
 import { collectRepoMap } from "../context/repo-map.js";
 import { resolveRepositoryRoot } from "../context/repository-root.js";
+import { collectTestSummary } from "../context/test-summary.js";
 import { buildCommitPrompt, buildDebugPrompt, buildSpecPrompt, buildTestPrompt } from "../prompt-builders/simple-workflow-prompts.js";
 
 export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
-  registerRepoMapCommand(pi, "test", "Start a testing workflow with repository test context", buildTestPrompt);
+  pi.registerCommand("test", {
+    description: "Start a testing workflow with repository test context",
+    handler: async (args, ctx) => {
+      const root = await resolveRepositoryRoot(pi, ctx.cwd, ctx.signal);
+      const testSummary = await collectTestSummary(root);
+      deliver(pi, ctx, buildTestPrompt(args, testSummary), "test");
+    },
+  });
+
   registerRepoMapCommand(pi, "spec", "Start a context-grounded spec-writing workflow", buildSpecPrompt);
 
   pi.registerCommand("debug", {

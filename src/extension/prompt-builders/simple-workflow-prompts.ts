@@ -1,7 +1,8 @@
 import type { GitReviewContext } from "../context/git-context.js";
 import type { RepoMap } from "../context/repo-map.js";
+import type { TestSummary } from "../context/test-summary.js";
 
-export function buildTestPrompt(args: string, repoMap: RepoMap): string {
+export function buildTestPrompt(args: string, testSummary: TestSummary): string {
   return [
     "/skill:testing-workflow",
     "",
@@ -14,7 +15,7 @@ export function buildTestPrompt(args: string, repoMap: RepoMap): string {
     "- Identify existing test scripts, test files, and likely test framework from context.",
     "- Recommend the smallest useful verification path for the stated goal.",
     "",
-    formatRepoMap(repoMap),
+    formatTestSummary(testSummary),
   ].join("\n");
 }
 
@@ -69,6 +70,22 @@ export function buildCommitPrompt(args: string, gitContext: GitReviewContext): s
     "",
     formatGitContext(gitContext),
   ].join("\n");
+}
+
+function formatTestSummary(summary: TestSummary): string {
+  return [
+    "## Test Context",
+    "",
+    `Root: ${summary.root}`,
+    summary.truncated ? "Note: test context was truncated." : "Note: test context completed within scan limits.",
+    "",
+    list("Package managers", summary.packageManagers),
+    list("Likely frameworks", summary.likelyFrameworks),
+    list("Test files", summary.testFiles),
+    "### Test scripts",
+    "",
+    summary.testScripts.length === 0 ? "(none)" : summary.testScripts.map((script) => `- ${script.manifest} ${script.name}: ${script.command}`).join("\n"),
+  ].filter(Boolean).join("\n");
 }
 
 function formatRepoMap(repoMap: RepoMap): string {

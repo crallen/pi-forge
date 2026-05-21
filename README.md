@@ -93,20 +93,21 @@ then sends a `/skill:code-review` handoff prompt. It does not modify files.
 
 ### `/security [focus]`
 
-Collect safe repository context and start the `security-audit` workflow.
+Collect safe repository and dependency context and start the `security-audit` workflow.
 
 ```
 /security                         — audit discovered security-relevant surfaces
 /security auth and session flows  — audit with an explicit focus
 ```
 
-Forge lists dependency manifests, security-relevant file candidates, and
-secret-like files by path only. It does not read secret-bearing file contents
-and does not modify files.
+Forge lists dependency manifests, package manager hints, dependency names,
+security-relevant file candidates, and secret-like files by path only. It does
+not read secret-bearing file contents and does not modify files.
 
 ### `/test [request]`
 
-Collect repository test context and start the `testing-workflow` skill.
+Collect test scripts, likely frameworks, and test files, then start the
+`testing-workflow` skill.
 
 ### `/debug [symptom]`
 
