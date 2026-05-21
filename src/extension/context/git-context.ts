@@ -3,6 +3,17 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 const GIT_TIMEOUT_MS = 5000;
 const MAX_DIFF_CHARS = 35_000;
 
+const SECRET_PATTERNS = [
+  /^\.env($|\.)/i,
+  /\.pem$/i,
+  /\.key$/i,
+  /credential/i,
+  /secret/i,
+  /service-account.*\.json$/i,
+  /\.tfvars$/i,
+  /^\.npmrc$/i,
+];
+
 export type ReviewScope =
   | { kind: "all"; focus: string }
   | { kind: "staged"; focus: string }
@@ -154,8 +165,12 @@ async function diffSection(
   signal?: AbortSignal,
 ): Promise<GitDiffSection> {
   const stat = await git(pi, repoRoot, [...diffArgs, "--stat"], signal);
-  const diff = await git(pi, repoRoot, diffArgs, signal);
-  const truncated = truncate(diff.stdout, MAX_DIFF_CHARS);
+  const changedFiles = await git(pi, repoRoot, [...diffArgs, "--name-only"], signal);
+  const secretLikeFiles = changedFiles.ok ? changedFiles.stdout.split("\n").filter(isSecretLikePath) : [];
+  const safeDiffArgs = secretLikeFiles.length > 0 ? [...diffArgs, "--", ".", ...secretLikeFiles.map((path) => `:(exclude)${path}`)] : diffArgs;
+  const diff = await git(pi, repoRoot, safeDiffArgs, signal);
+  const redactionNotice = formatSecretRedactionNotice(secretLikeFiles);
+  const truncated = truncate([redactionNotice, diff.stdout].filter(Boolean).join("\n\n"), MAX_DIFF_CHARS);
 
   return {
     label,
@@ -194,6 +209,22 @@ async function git(
 
 function normalizeFocus(value: string): string {
   return value.replace(/^focus\s+(on\s+)?/i, "").trim();
+}
+
+function isSecretLikePath(path: string): boolean {
+  const normalized = path.trim();
+  if (!normalized) return false;
+  const name = normalized.split("/").at(-1) ?? normalized;
+  return SECRET_PATTERNS.some((pattern) => pattern.test(name) || pattern.test(normalized));
+}
+
+function formatSecretRedactionNotice(paths: string[]): string {
+  if (paths.length === 0) return "";
+  return [
+    "[secret-like diff redacted]",
+    "The following changed path(s) matched secret-like filename patterns. Their diff contents were intentionally omitted:",
+    ...paths.map((path) => `- ${path}`),
+  ].join("\n");
 }
 
 function truncate(text: string, maxChars: number): { text: string; truncated: boolean; omittedChars: number } {

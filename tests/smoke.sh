@@ -230,6 +230,12 @@ EOF
 EOF
         git add README.md
         ;;
+      secret)
+        cat > .env << 'EOF'
+SECRET_TOKEN=do-not-include-in-review-context
+EOF
+        git add .env
+        ;;
     esac
   )
   echo "$repo"
@@ -293,6 +299,13 @@ run "command:review/clean-full-state" \
   "/review" \
   "" \
   "$REVIEW_REPO_CLEAN"
+
+REVIEW_REPO_SECRET="$(setup_review_repo secret)"
+run "command:review/redacts-secret-diff" \
+  "print mode should show a secret-like diff redaction notice for .env and must not include SECRET_TOKEN or do-not-include-in-review-context" \
+  "/review staged" \
+  "" \
+  "$REVIEW_REPO_SECRET"
 
 run "command:review/non-git" \
   "print mode should degrade gracefully, say the cwd is not a git repository, and ask for diff/file paths instead of inventing findings" \
