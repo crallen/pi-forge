@@ -44,15 +44,15 @@ export function parseReviewScope(args: string): ReviewScope {
   const [first, ...rest] = trimmed.split(/\s+/);
   const focus = rest.join(" ").trim();
 
-  if (first === "staged") return { kind: "staged", focus };
-  if (first === "unstaged") return { kind: "unstaged", focus };
+  if (first === "staged") return { kind: "staged", focus: normalizeFocus(focus) };
+  if (first === "unstaged") return { kind: "unstaged", focus: normalizeFocus(focus) };
 
   if (first === "branch") {
     const [base, ...remaining] = rest;
-    return { kind: "branch", base: base ?? "HEAD", focus: remaining.join(" ").trim() };
+    return { kind: "branch", base: base ?? "HEAD", focus: normalizeFocus(remaining.join(" ").trim()) };
   }
 
-  return { kind: "all", focus: trimmed };
+  return { kind: "all", focus: normalizeFocus(trimmed) };
 }
 
 export function describeReviewScope(scope: ReviewScope): string {
@@ -190,6 +190,10 @@ async function git(
       command,
     };
   }
+}
+
+function normalizeFocus(value: string): string {
+  return value.replace(/^focus\s+(on\s+)?/i, "").trim();
 }
 
 function truncate(text: string, maxChars: number): { text: string; truncated: boolean; omittedChars: number } {

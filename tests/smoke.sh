@@ -159,7 +159,7 @@ run() {
 }
 
 setup_review_repo() {
-  local repo="$WORK_DIR/review-repo"
+  local repo="$WORK_DIR/review-repo-$1"
   mkdir -p "$repo"
   (
     cd "$repo" || exit 1
@@ -173,11 +173,34 @@ function add(a, b) {
 EOF
     git add app.js
     git commit -q -m "feat: add sample app"
-    cat > app.js << 'EOF'
+    case "$1" in
+      unstaged)
+        cat > app.js << 'EOF'
 function add(a, b) {
   return a - b
 }
 EOF
+        ;;
+      staged)
+        cat > app.js << 'EOF'
+function add(a, b) {
+  return a * b
+}
+EOF
+        git add app.js
+        ;;
+      mixed)
+        cat > app.js << 'EOF'
+function add(a, b) {
+  return a - b
+}
+EOF
+        cat > README.md << 'EOF'
+# Review smoke repo
+EOF
+        git add README.md
+        ;;
+    esac
   )
   echo "$repo"
 }
@@ -223,12 +246,30 @@ run "roles/tech-lead-knows-when-to-escalate" \
 # Commands — workflow behavior
 # =============================================================================
 
-REVIEW_REPO="$(setup_review_repo)"
+REVIEW_REPO_UNSTAGED="$(setup_review_repo unstaged)"
 run "command:review/current-diff" \
-  "print mode should show the generated /skill:code-review handoff prompt with git status, recent commits, and an app.js diff showing return a - b" \
+  "print mode should show the generated /skill:code-review handoff prompt with git status, recent commits, Additional review focus: correctness, and an app.js diff showing return a - b" \
   "/review focus on correctness" \
   "" \
-  "$REVIEW_REPO"
+  "$REVIEW_REPO_UNSTAGED"
+
+REVIEW_REPO_STAGED="$(setup_review_repo staged)"
+run "command:review/staged" \
+  "print mode should show only staged diff context with an app.js diff showing return a * b" \
+  "/review staged" \
+  "" \
+  "$REVIEW_REPO_STAGED"
+
+REVIEW_REPO_MIXED="$(setup_review_repo mixed)"
+run "command:review/unstaged" \
+  "print mode should show only unstaged diff context with app.js and should not include the staged README.md diff" \
+  "/review unstaged" \
+  "" \
+  "$REVIEW_REPO_MIXED"
+
+run "command:review/non-git" \
+  "print mode should degrade gracefully, say the cwd is not a git repository, and ask for diff/file paths instead of inventing findings" \
+  "/review"
 
 # =============================================================================
 # Skills — domain behavior
