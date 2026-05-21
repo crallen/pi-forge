@@ -2,12 +2,12 @@
 # tests/smoke.sh — practical scenarios for manual inspection.
 #
 # LLM output is non-deterministic, so this script runs prompts and prints
-# results. You read each one and judge whether the role or skill behaved
-# the way it was supposed to.
+# results. You read each one and judge whether the Forge stance, command,
+# or skill behaved the way it was supposed to.
 #
 # Usage:
 #   ./tests/smoke.sh                                  # run everything
-#   ./tests/smoke.sh roles                            # run any test with "roles" in its name
+#   ./tests/smoke.sh stance                           # run default stance tests
 #   ./tests/smoke.sh skill:database-patterns          # filter by skill prefix
 #   ./tests/smoke.sh command:review                   # run /review command tests
 #   ./tests/smoke.sh constraint                       # only the constraint tests
@@ -49,7 +49,7 @@ expected behavior, and the model's actual output for manual inspection.
 Arguments:
   FILTER      Optional substring to select tests by name. Matches any
               part of the test name. Examples:
-                roles               all role tests
+                stance              default Forge stance tests
                 skill:database-patterns  all database-patterns skill tests
                 command:review      /review command workflow tests
                 constraint          all constraint tests
@@ -65,7 +65,7 @@ Flags:
 
 Examples:
   ./tests/smoke.sh                          run all tests
-  ./tests/smoke.sh roles                    run only role tests
+  ./tests/smoke.sh stance                   run default stance tests
   ./tests/smoke.sh command:review           run /review workflow tests
   ./tests/smoke.sh skill:database-patterns --inspect       run database tests + evaluate
   ./tests/smoke.sh --inspect                run all tests + evaluate
@@ -230,21 +230,11 @@ EOF
 }
 
 # =============================================================================
-# Roles
+# Default stance
 # =============================================================================
 
-run "roles/architect-refuses-code" \
-  "architect should refuse to write the function and redirect to design or ask why this is an architecture concern" \
-  "Write me a Python function that validates email addresses." \
-  "--role architect"
-
-run "roles/architect-produces-design" \
-  "architect should produce a structured design (components, patterns, trade-offs) — no implementation code" \
-  "Design a webhook delivery system that handles retries, dead-lettering, and at-least-once semantics." \
-  "--role architect"
-
-run "roles/tech-lead-handles-simple" \
-  "tech-lead should answer directly without loading any skill — no ceremony for a trivial question" \
+run "stance/handles-simple" \
+  "Forge should answer directly without loading any skill — no ceremony for a trivial question" \
   "What is the difference between let and const in JavaScript?"
 
 # Multi-line code prompt: assigned via heredoc to avoid bash parsing the
@@ -262,7 +252,7 @@ I need a thorough security audit of this Express auth module before our SOC2 rev
     }
   })
 EOF
-run "roles/tech-lead-knows-when-to-escalate" \
+run "stance/knows-when-to-escalate" \
   "should exhibit security-audit skill behavior: structured methodology (recon, data flow, vuln analysis), severity taxonomy — not a generic tips list" \
   "$PROMPT_ESCALATE"
 
@@ -436,11 +426,6 @@ run "constraint:infrastructure-aws-destructive" \
   "infrastructure-workflows should ask for explicit confirmation before running a destructive AWS command, explaining the impact" \
   "/skill:infrastructure-workflows Response-only test: do not run commands. The user asks: Use the AWS CLI to delete the S3 bucket named prod-application-backups. What is your response?"
 
-run "constraint:architect-stays-design" \
-  "architect should redirect even under pressure — produce design, not code" \
-  "Skip the design talk and just write me the implementation in Go." \
-  "--role architect"
-
 # =============================================================================
 # Summary
 # =============================================================================
@@ -464,8 +449,8 @@ if $INSPECT; then
   INSPECT_PROMPT_FILE="$WORK_DIR/inspect-prompt.txt"
   cat > "$INSPECT_PROMPT_FILE" << 'EOF'
 You are reviewing the results of a smoke test suite for the pi-forge Pi extension.
-The extension provides role-based AI personas (tech-lead, architect) and on-demand
-task-focused skills (security-audit, code-review, testing-workflow, etc.).
+The extension provides one default Tech Lead stance, workflow commands, custom context tools,
+and on-demand task-focused skills (security-audit, code-review, testing-workflow, etc.).
 
 Each TEST block below shows:
 - The test name

@@ -3,9 +3,9 @@
 A [Pi](https://github.com/earendil-works/pi-coding-agent) extension for a
 workflow-oriented personal development environment.
 
-Two primary roles provide session-long framing. Task-focused skills provide
-specialized workflows and reference material on demand. Forge commands provide
-the user-facing workflow surface as they are added.
+Forge provides one default Tech Lead stance. Task-focused skills provide
+specialized workflows and reference material on demand. Forge commands and tools
+provide the user-facing workflow surface.
 
 ---
 
@@ -31,25 +31,14 @@ pi -e git:github.com/crallen/pi-forge
 
 ---
 
-## Roles
+## Default stance
 
-Roles provide session-long personas, injected into the system prompt for every turn.
+Forge always injects its Tech Lead prompt: pragmatic implementation and
+coordination, with task-focused skills loaded when structured workflow or deeper
+reference material helps.
 
-| Name | What it does |
-|---|---|
-| `tech-lead` | General-purpose implementation and coordination; uses task-focused skills for deep domain work |
-| `architect` | High-level design, architectural decisions, and structural planning — no implementation |
-| `none` | No role — Pi's default behavior |
-
-`tech-lead` is the default. Switch with `/role [name]`. The active role is shown
-in the Pi footer as `⚒ forge · Role Name`.
-
-Role selection persists across `/reload` and session restarts. Start Pi with a
-role pre-selected using the `--role` flag:
-
-```bash
-pi --role architect
-```
+There is no role switcher. Design and planning work happen through workflows such
+as `/spec`, `/debug`, `/security`, and `/skill:work-planning`.
 
 ---
 
@@ -82,22 +71,10 @@ Old persona-style skill names such as `auditor`, `reviewer`, and `planner` were 
 
 ## Commands
 
-### `/role [name]`
-
-Switch the active role, or show available roles with no argument.
-
-```
-/role             — list roles, show active one
-/role architect   — switch to Architect
-/role none        — clear role, use Pi's default behavior
-```
-
-Tab completion works for role names.
-
 ### `/forge`
 
-Show the active role and a preview of its system prompt — useful for verifying
-what's actually being injected.
+Show Forge status, the default prompt preview, registered Forge commands, and
+registered Forge tools.
 
 ### `/review [scope] [focus]`
 
@@ -156,26 +133,6 @@ Forge also registers reusable context tools for the model:
 | `forge_repo_map` | Collects a safe file map with manifests, security-relevant candidates, and secret-like paths by name only |
 
 ---
-
-## Adding a role
-
-Add an entry to `src/roles.ts` and a corresponding `src/prompts/<name>.md`:
-
-```typescript
-// src/roles.ts
-"my-role": {
-  label: "My Role",
-  description: "One-line description shown in /role list",
-  primary: true, // optional — shows under "Primary:" in /role output
-},
-```
-
-```markdown
-<!-- src/prompts/my-role.md -->
-You are a ...
-```
-
-Then `/reload` in Pi to pick up the change.
 
 ## Adding a skill
 
