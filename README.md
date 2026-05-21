@@ -114,6 +114,19 @@ Collect git context and start the `code-review` workflow.
 Forge collects branch, status, recent commits, diff stats, and relevant diffs,
 then sends a `/skill:code-review` handoff prompt. It does not modify files.
 
+### `/security [focus]`
+
+Collect safe repository context and start the `security-audit` workflow.
+
+```
+/security                         — audit discovered security-relevant surfaces
+/security auth and session flows  — audit with an explicit focus
+```
+
+Forge lists dependency manifests, security-relevant file candidates, and
+secret-like files by path only. It does not read secret-bearing file contents
+and does not modify files.
+
 ---
 
 ## Adding a role

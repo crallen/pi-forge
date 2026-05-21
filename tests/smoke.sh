@@ -158,6 +158,30 @@ run() {
   echo "---------------------------------------------------------------------------------"
 }
 
+setup_security_repo() {
+  local repo="$WORK_DIR/security-repo"
+  mkdir -p "$repo/src/routes" "$repo/src/middleware"
+  cat > "$repo/package.json" << 'EOF'
+{
+  "scripts": { "test": "node --test" },
+  "dependencies": { "express": "latest", "jsonwebtoken": "latest" }
+}
+EOF
+  cat > "$repo/src/routes/auth.js" << 'EOF'
+app.post('/login', (req, res) => {
+  const user = db.query("SELECT * FROM users WHERE email='" + req.body.email + "'")
+  res.cookie('session', user.id)
+})
+EOF
+  cat > "$repo/src/middleware/cors.js" << 'EOF'
+module.exports = { origin: '*', credentials: true }
+EOF
+  cat > "$repo/.env" << 'EOF'
+SECRET_KEY=do-not-read
+EOF
+  echo "$repo"
+}
+
 setup_review_repo() {
   local repo="$WORK_DIR/review-repo-$1"
   mkdir -p "$repo"
@@ -270,6 +294,13 @@ run "command:review/unstaged" \
 run "command:review/non-git" \
   "print mode should degrade gracefully, say the cwd is not a git repository, and ask for diff/file paths instead of inventing findings" \
   "/review"
+
+SECURITY_REPO="$(setup_security_repo)"
+run "command:security/repo-context" \
+  "print mode should show a /skill:security-audit handoff with package.json, auth.js, cors.js, and .env listed as intentionally not read" \
+  "/security auth and CORS" \
+  "" \
+  "$SECURITY_REPO"
 
 # =============================================================================
 # Skills — domain behavior
