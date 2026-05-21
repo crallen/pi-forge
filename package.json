@@ -4,6 +4,10 @@
   "description": "Personal development workflow extension for Pi",
   "type": "module",
   "keywords": ["pi-package"],
+  "scripts": {
+    "test": "rm -rf .test-dist && tsc -p tsconfig.test.json && node --test .test-dist/tests/*.test.js",
+    "typecheck": "tsc --noEmit"
+  },
   "pi": {
     "extensions": ["./src/index.ts"]
   },
