@@ -1,7 +1,9 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type, type Static } from "typebox";
+import { collectDependencyInventory } from "./context/dependency-inventory.js";
 import { collectGitReviewContext, parseReviewScope } from "./context/git-context.js";
 import { collectRepoMap } from "./context/repo-map.js";
+import { collectTestSummary } from "./context/test-summary.js";
 
 const gitContextSchema = Type.Object({
   scope: Type.Optional(Type.String({ description: "Review scope: all, staged, unstaged, branch <base>, or focus text" })),
@@ -11,6 +13,12 @@ type GitContextInput = Static<typeof gitContextSchema>;
 
 const repoMapSchema = Type.Object({});
 type RepoMapInput = Static<typeof repoMapSchema>;
+
+const dependencyInventorySchema = Type.Object({});
+type DependencyInventoryInput = Static<typeof dependencyInventorySchema>;
+
+const testSummarySchema = Type.Object({});
+type TestSummaryInput = Static<typeof testSummarySchema>;
 
 export function registerTools(pi: ExtensionAPI) {
   pi.registerTool({
@@ -45,6 +53,42 @@ export function registerTools(pi: ExtensionAPI) {
       return {
         content: [{ type: "text", text: JSON.stringify(repoMap, null, 2) }],
         details: repoMap,
+      };
+    },
+  });
+
+  pi.registerTool({
+    name: "forge_dependency_inventory",
+    label: "Forge Dependency Inventory",
+    description: "Collect dependency manifests, package manager hints, and package.json dependency names without installing or auditing packages.",
+    promptSnippet: "Collect dependency manifests and package metadata without mutating installs",
+    promptGuidelines: [
+      "Use forge_dependency_inventory when a workflow needs package manager, manifest, script, or dependency-name context without running installs or audits.",
+    ],
+    parameters: dependencyInventorySchema,
+    async execute(_toolCallId, _params: DependencyInventoryInput, _signal, _onUpdate, ctx) {
+      const inventory = await collectDependencyInventory(ctx.cwd);
+      return {
+        content: [{ type: "text", text: JSON.stringify(inventory, null, 2) }],
+        details: inventory,
+      };
+    },
+  });
+
+  pi.registerTool({
+    name: "forge_test_summary",
+    label: "Forge Test Summary",
+    description: "Collect test scripts, likely test frameworks, and test file paths without running the test suite.",
+    promptSnippet: "Collect repository test structure without executing tests",
+    promptGuidelines: [
+      "Use forge_test_summary when a workflow needs test scripts, likely frameworks, or test file layout before planning or writing tests.",
+    ],
+    parameters: testSummarySchema,
+    async execute(_toolCallId, _params: TestSummaryInput, _signal, _onUpdate, ctx) {
+      const summary = await collectTestSummary(ctx.cwd);
+      return {
+        content: [{ type: "text", text: JSON.stringify(summary, null, 2) }],
+        details: summary,
       };
     },
   });

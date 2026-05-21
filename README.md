@@ -118,8 +118,10 @@ Collect repository context and start the staged `spec-writing` workflow.
 
 ### `/commit [instructions]`
 
-Collect git context and draft Conventional Commit messages using `git-conventions`.
-Forge does not run `git add` or `git commit`.
+Collect git context and create Conventional Commit commits using `git-conventions`.
+Forge stages and commits one logical change, asks before splitting mixed changes,
+does nothing when there are no changes, and does not rewrite history unless
+explicitly asked.
 
 ---
 
@@ -131,6 +133,8 @@ Forge also registers reusable context tools for the model:
 |---|---|
 | `forge_git_context` | Collects git status, recent commits, diff stats, and diffs without mutating the repo |
 | `forge_repo_map` | Collects a safe file map with manifests, security-relevant candidates, and secret-like paths by name only |
+| `forge_dependency_inventory` | Collects dependency manifests, package manager hints, scripts, and dependency names without installing packages |
+| `forge_test_summary` | Collects test scripts, likely frameworks, and test file paths without running tests |
 
 ---
 
