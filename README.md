@@ -140,6 +140,18 @@ Collect repository context and start the staged `spec-writing` workflow.
 /spec migration  — spec a data or infrastructure migration
 ```
 
+### `/pr [base]`
+
+Collect the diff between the current branch and a base branch, then draft a PR title and description.
+
+```
+/pr           — auto-detect base (main → master → upstream → HEAD~1)
+/pr main      — diff against main
+/pr develop   — diff against develop
+```
+
+The base argument tab-completes against local branches. Forge writes a PR title in Conventional Commit style and a description with **What**, **How**, **Testing**, and optional **Notes** sections. It does not modify files.
+
 ### `/commit [instructions]`
 
 Collect git context and create Conventional Commit commits using `git-conventions`.
