@@ -6,6 +6,7 @@ import { buildTestPrompt } from "../src/extension/prompt-builders/test-prompt.js
 import { buildDebugPrompt } from "../src/extension/prompt-builders/debug-prompt.js";
 import { buildSpecPrompt } from "../src/extension/prompt-builders/spec-prompt.js";
 import { buildCommitPrompt } from "../src/extension/prompt-builders/commit-prompt.js";
+import { buildPrPrompt } from "../src/extension/prompt-builders/pr-prompt.js";
 import type { GitReviewContext, ReviewScope } from "../src/extension/context/git-context.js";
 import type { RepoMap } from "../src/extension/context/repo-map.js";
 import type { DependencyInventory } from "../src/extension/context/dependency-inventory.js";
@@ -268,4 +269,45 @@ test("commit prompt: git context included in output", () => {
 
   assert.match(prompt, /feature\/login/);
   assert.match(prompt, /abc1234 feat: init/);
+});
+
+// --- PR prompt ---
+
+test("pr prompt: contains skill invocation and base branch", () => {
+  const prompt = buildPrPrompt({ base: "main" }, makeGitContext());
+
+  assert.match(prompt, /\/skill:git-conventions/);
+  assert.match(prompt, /`main`/);
+  assert.match(prompt, /pull request/);
+  assert.match(prompt, /forge_git_context/);
+  assert.match(prompt, /Do not modify any files/);
+});
+
+test("pr prompt: includes diff context", () => {
+  const prompt = buildPrPrompt({ base: "main" }, makeGitContext());
+
+  assert.match(prompt, /Git Context/);
+  assert.match(prompt, /feature\/login|main/);
+  assert.match(prompt, /src\/index\.ts/);
+});
+
+test("pr prompt: what\/how\/testing sections instructed", () => {
+  const prompt = buildPrPrompt({ base: "develop" }, makeGitContext());
+
+  assert.match(prompt, /\*\*What\*\*/);
+  assert.match(prompt, /\*\*How\*\*/);
+  assert.match(prompt, /\*\*Testing\*\*/);
+});
+
+test("pr prompt: non-git repo handled gracefully", () => {
+  const context = makeGitContext({ isGitRepo: false, cwd: "/not-a-repo", repoRoot: "", branch: undefined });
+  const prompt = buildPrPrompt({ base: "main" }, context);
+
+  assert.match(prompt, /Git repository: no/);
+});
+
+test("pr prompt: errors in context are surfaced", () => {
+  const prompt = buildPrPrompt({ base: "main" }, makeGitContext({ errors: ["git diff failed"] }));
+
+  assert.match(prompt, /git diff failed/);
 });
