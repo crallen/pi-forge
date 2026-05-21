@@ -164,15 +164,15 @@ Summarize recent commits as a brief engineering standup entry.
 /standup v1.2.0         — commits since a specific tag or ref
 ```
 
-### `/changes [since]`
+### `/repo-changes [since]`
 
 Generate a [Keep a Changelog](https://keepachangelog.com) entry from recent commits.
 
 ```
-/changes                         — commits since last tag (or 1 month ago)
-/changes 1 week ago              — commits from the last week
-/changes --version 1.3.0         — specify target version
-/changes --version 1.3.0 v1.2.0  — specify version and base ref
+/repo-changes                         — commits since last tag (or 1 month ago)
+/repo-changes 1 week ago              — commits from the last week
+/repo-changes --version 1.3.0         — specify target version
+/repo-changes --version 1.3.0 v1.2.0  — specify version and base ref
 ```
 
 ### `/commit [instructions]`

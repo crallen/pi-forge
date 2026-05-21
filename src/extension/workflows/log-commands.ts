@@ -27,7 +27,7 @@ export function registerLogCommands(pi: ExtensionAPI) {
     },
   });
 
-  pi.registerCommand("changes", {
+  pi.registerCommand("repo-changes", {
     description: "Generate a Keep a Changelog entry from recent commits",
     getArgumentCompletions: (prefix) => {
       const options = [
@@ -42,10 +42,10 @@ export function registerLogCommands(pi: ExtensionAPI) {
       const gitLog = await collectGitLog(pi, ctx.cwd, since, ctx.signal);
 
       if (ctx.hasUI && gitLog.errors.length > 0) {
-        ctx.ui.notify(`/changes: context collection had errors — results may be incomplete:\n${gitLog.errors.map((e) => `• ${e}`).join("\n")}`, "warning");
+        ctx.ui.notify(`/repo-changes: context collection had errors — results may be incomplete:\n${gitLog.errors.map((e) => `• ${e}`).join("\n")}`, "warning");
       }
 
-      deliver(pi, ctx, buildChangelogPrompt(gitLog, version), "changes");
+      deliver(pi, ctx, buildChangelogPrompt(gitLog, version), "repo-changes");
     },
   });
 }
