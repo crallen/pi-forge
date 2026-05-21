@@ -3,19 +3,39 @@ import { collectGitReviewContext, parseReviewScope } from "../context/git-contex
 import { buildReviewPrompt } from "../prompt-builders/review-prompt.js";
 
 export function registerReviewCommand(pi: ExtensionAPI) {
+  let currentCwd = process.cwd();
+
+  pi.on("session_start", async (_event, ctx) => {
+    currentCwd = ctx.cwd;
+  });
+
+  pi.on("user_bash", async (_event, ctx) => {
+    currentCwd = ctx.cwd;
+  });
+
   pi.registerCommand("review", {
     description: "Review current git changes using the code-review workflow",
 
-    getArgumentCompletions: (prefix) => {
-      const options = [
-        { value: "staged", label: "staged       Review staged changes only" },
-        { value: "unstaged", label: "unstaged     Review unstaged changes only" },
-        { value: "branch ", label: "branch <base> Review changes since a base ref" },
+    getArgumentCompletions: async (prefix) => {
+      const staticOptions = [
+        { value: "staged", label: "staged        Review staged changes only" },
+        { value: "unstaged", label: "unstaged      Review unstaged changes only" },
       ];
-      return options.filter((item) => item.value.startsWith(prefix));
+
+      if (prefix.startsWith("branch ")) {
+        const branchPrefix = prefix.slice("branch ".length);
+        const branches = await listBranches(pi, currentCwd);
+        return branches
+          .filter((b) => b.startsWith(branchPrefix))
+          .map((b) => ({ value: `branch ${b}`, label: `branch ${b}` }));
+      }
+
+      const branchOption = { value: "branch ", label: "branch <base> Review changes since a base ref" };
+      return [...staticOptions, branchOption].filter((item) => item.value.startsWith(prefix));
     },
 
     handler: async (args, ctx) => {
+      currentCwd = ctx.cwd;
       const scope = parseReviewScope(args);
       const context = await collectGitReviewContext(pi, ctx.cwd, scope, ctx.signal);
 
@@ -38,4 +58,17 @@ export function registerReviewCommand(pi: ExtensionAPI) {
       }
     },
   });
+}
+
+async function listBranches(pi: ExtensionAPI, cwd: string): Promise<string[]> {
+  try {
+    const result = await pi.exec("git", ["branch", "--format=%(refname:short)", "--sort=-committerdate"], { cwd, timeout: 5000 });
+    if (result.code !== 0) return [];
+    return result.stdout
+      .split("\n")
+      .map((b) => b.trim())
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
 }
