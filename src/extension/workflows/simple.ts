@@ -62,6 +62,7 @@ export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
     description: "Create Conventional Commit commits for current changes",
     getArgumentCompletions: (prefix) => {
       const options = [
+        { value: "--dry-run", label: "--dry-run         Draft commit messages only, do not commit" },
         { value: "feat", label: "feat              Hint: changes add a new feature" },
         { value: "fix", label: "fix               Hint: changes fix a bug" },
         { value: "refactor", label: "refactor          Hint: changes restructure without behavior change" },

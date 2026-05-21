@@ -55,22 +55,44 @@ export function buildSpecPrompt(args: string, repoMap: RepoMap): string {
 }
 
 export function buildCommitPrompt(args: string, gitContext: GitReviewContext): string {
+  const { dryRun, rest } = parseCommitArgs(args);
+
+  const instructions = dryRun
+    ? [
+        "- Inspect the current git changes and propose Conventional Commit message(s).",
+        "- Do not run git add or git commit. Draft only.",
+        "- If the changes should be split into multiple commits, explain the proposed split.",
+        "- If there are no changes, say so.",
+        "- Do not amend, force-push, or otherwise rewrite history unless explicitly asked.",
+      ]
+    : [
+        "- Inspect the current git changes and choose an appropriate Conventional Commit message.",
+        "- If the changes are one logical unit, stage the relevant files and run git commit.",
+        "- If changes should be split into multiple commits, explain the proposed split and ask before committing.",
+        "- If there are no changes, say so and do not run git commit.",
+        "- Do not amend, force-push, or otherwise rewrite history unless explicitly asked.",
+      ];
+
   return [
     "/skill:git-conventions",
     "",
-    "Create Conventional Commit commit(s) for the current changes.",
+    dryRun ? "Draft Conventional Commit message(s) for the current changes." : "Create Conventional Commit commit(s) for the current changes.",
     "",
-    args.trim() ? `Additional instructions: ${args.trim()}` : "Additional instructions: none.",
+    rest.trim() ? `Additional instructions: ${rest.trim()}` : "Additional instructions: none.",
     "",
     "Instructions:",
-    "- Inspect the current git changes and choose an appropriate Conventional Commit message.",
-    "- If the changes are one logical unit, stage the relevant files and run git commit.",
-    "- If changes should be split into multiple commits, explain the proposed split and ask before committing.",
-    "- If there are no changes, say so and do not run git commit.",
-    "- Do not amend, force-push, or otherwise rewrite history unless explicitly asked.",
+    ...instructions,
     "",
     formatGitContext(gitContext),
   ].join("\n");
+}
+
+function parseCommitArgs(args: string): { dryRun: boolean; rest: string } {
+  const parts = args.trim().split(/\s+/);
+  const dryRunIndex = parts.findIndex((part) => part === "--dry-run");
+  if (dryRunIndex === -1) return { dryRun: false, rest: args.trim() };
+  parts.splice(dryRunIndex, 1);
+  return { dryRun: true, rest: parts.join(" ") };
 }
 
 function formatTestSummary(summary: TestSummary): string {
