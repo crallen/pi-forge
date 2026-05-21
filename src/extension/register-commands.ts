@@ -1,4 +1,5 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { registerLogCommands } from "./workflows/log-commands.js";
 import { registerPrCommand } from "./workflows/pr.js";
 import { registerReviewCommand } from "./workflows/review.js";
 import { registerSecurityCommand } from "./workflows/security.js";
@@ -9,4 +10,5 @@ export function registerCommands(pi: ExtensionAPI) {
   registerPrCommand(pi);
   registerSecurityCommand(pi);
   registerSimpleWorkflowCommands(pi);
+  registerLogCommands(pi);
 }
