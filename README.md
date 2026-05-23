@@ -77,6 +77,18 @@ Show Forge status, the default prompt preview, registered Forge commands, and
 registered Forge tools. Also displays the current repository root, branch, and
 working tree status.
 
+### `/dev [goal]`
+
+Start a guided development workflow. Forge collects environment, repository,
+dependency, test, and git context, then hands off to `coding-guardrails` with
+instructions to inspect relevant files, plan before non-trivial edits, use domain
+skills only when needed, and verify targeted checks before delivery.
+
+```
+/dev add password reset flow  — start an implementation lane for a goal
+/dev                          — continue from the current repository state
+```
+
 ### `/review [scope] [focus]`
 
 Collect git context and start the `code-review` workflow.
@@ -113,6 +125,58 @@ security-relevant file candidates, and secret-like files by path only. It does
 not read secret-bearing file contents and does not modify files. With `--deep`,
 Forge also includes test summary context and asks for reconnaissance, data-flow,
 dependency, and findings passes.
+
+### `/workflow [subcommand]`
+
+Show and manage the active Forge workflow state. Workflow state is advisory and
+stored in session history; the repository remains the source of truth.
+
+```
+/workflow          — show active workflow state
+/workflow update   — ask the agent to refresh state from repo/session context
+/workflow ready    — mark active workflow ready for review
+/workflow done     — mark active workflow complete
+/workflow abandon  — mark active workflow abandoned
+/workflow clear    — clear active workflow UI state without deleting history
+```
+
+### `/check [target]`
+
+Select and run a conservative non-destructive project check from detected
+package scripts. Forge prefers typecheck, test, then lint; build is used only
+when explicitly selected or no safer candidate exists. It refuses low-confidence
+checks in non-UI mode and never installs dependencies or runs deploy/migration
+commands automatically.
+
+```
+/check            — run the safest high-confidence check
+/check typecheck  — prefer a typecheck command
+/check test       — prefer a test command
+/check lint       — prefer a lint command
+/check build      — run a build check when available
+```
+
+### `/verify [scope]`
+
+Assess whether the active work is ready using workflow state, recent checks, git
+context, and environment context. If no recent checks exist, Forge recommends a
+safe `/check` target.
+
+```
+/verify        — assess readiness of current active work
+/verify auth   — assess readiness with an auth-focused scope
+```
+
+### `/fix-tests [failure]`
+
+Start a focused reproduction-first workflow for failing tests or checks. If no
+failure text is provided, Forge uses the most recent failed check from the active
+workflow when available.
+
+```
+/fix-tests                         — diagnose the latest failed workflow check
+/fix-tests expected 200 got 500    — diagnose pasted failure output
+```
 
 ### `/test [request]`
 
@@ -224,6 +288,7 @@ Forge also registers reusable context tools for the model:
 | `forge_repo_map` | Collects a safe file map with manifests, security-relevant candidates, and secret-like paths by name only |
 | `forge_read_file` | Reads a source file within the repo root; blocks secret-like paths and truncates large files |
 | `forge_dependency_inventory` | Collects dependency manifests, package manager hints, scripts, and dependency names without installing packages |
+| `forge_environment_context` | Collects deterministic project metadata about runtimes, scripts, frameworks, CI, Docker, migrations, deployment, and candidate checks without running project code |
 | `forge_test_summary` | Collects test scripts, likely frameworks, and test file paths without running tests |
 
 ---

@@ -4,6 +4,9 @@ import { buildDeepReviewPrompt, buildReviewPrompt } from "../src/extension/promp
 import { buildDeepSecurityPrompt, buildSecurityPrompt } from "../src/extension/prompt-builders/security-prompt.js";
 import { buildTestPrompt } from "../src/extension/prompt-builders/test-prompt.js";
 import { buildDebugPrompt } from "../src/extension/prompt-builders/debug-prompt.js";
+import { buildDevPrompt } from "../src/extension/prompt-builders/dev-prompt.js";
+import { buildFixTestsPrompt } from "../src/extension/prompt-builders/fix-tests-prompt.js";
+import { buildVerifyPrompt } from "../src/extension/prompt-builders/verify-prompt.js";
 import { buildSpecPrompt } from "../src/extension/prompt-builders/spec-prompt.js";
 import { buildCommitPrompt } from "../src/extension/prompt-builders/commit-prompt.js";
 import { buildPrPrompt } from "../src/extension/prompt-builders/pr-prompt.js";
@@ -11,6 +14,7 @@ import type { GitReviewContext, ReviewScope } from "../src/extension/context/git
 import type { RepoMap } from "../src/extension/context/repo-map.js";
 import type { DependencyInventory } from "../src/extension/context/dependency-inventory.js";
 import type { TestSummary } from "../src/extension/context/test-summary.js";
+import type { EnvironmentContext } from "../src/extension/context/environment-context.js";
 
 // --- Fixtures ---
 
@@ -68,6 +72,46 @@ function makeDependencyInventory(overrides: Partial<DependencyInventory> = {}): 
     truncated: false,
     errors: [],
     ...overrides,
+  };
+}
+
+function makeEnvironmentContext(overrides: Partial<EnvironmentContext> = {}): EnvironmentContext {
+  return {
+    root: "/repo",
+    packageManagers: ["npm"],
+    languages: ["TypeScript"],
+    runtimes: [{ name: "node", source: "package.json" }],
+    frameworks: [{ name: "Express", evidence: ["dependency express"] }],
+    scripts: [{ manifest: "package.json", name: "test", command: "node --test", category: "test" }],
+    checkCommands: [{ label: "test", command: "npm test", cwd: "/repo", confidence: "high", reason: "package.json script categorized as test" }],
+    ciFiles: [".github/workflows/ci.yml"],
+    dockerFiles: [],
+    migrationHints: [],
+    deploymentHints: [],
+    monorepoHints: [],
+    truncated: false,
+    errors: [],
+    ...overrides,
+  };
+}
+
+function makeWorkflowState() {
+  return {
+    schemaVersion: 1 as const,
+    id: "wf-test",
+    kind: "dev" as const,
+    status: "active" as const,
+    goal: "add auth",
+    createdAt: 1,
+    updatedAt: 2,
+    repoRoot: "/repo",
+    branch: "main",
+    plan: [],
+    decisions: [],
+    filesTouched: ["src/index.ts"],
+    checksRun: [{ command: "npm test", cwd: "/repo", status: "passed" as const, exitCode: 0, durationMs: 100, summary: "npm test passed", timestamp: 2 }],
+    risks: [],
+    nextSteps: ["/review"],
   };
 }
 
@@ -187,6 +231,37 @@ test("deep security prompt: includes phases and test summary", () => {
   assert.match(prompt, /Test Summary/);
   assert.match(prompt, /tests\/auth\.test\.ts/);
   assert.match(prompt, /Requested focus: auth/);
+});
+
+// --- Dev prompt ---
+
+test("dev prompt: includes guided development expectations and context", () => {
+  const prompt = buildDevPrompt("add password reset", makeEnvironmentContext(), makeRepoMap(), makeDependencyInventory(), makeTestSummary(), makeGitContext());
+
+  assert.match(prompt, /\/skill:coding-guardrails/);
+  assert.match(prompt, /Goal: add password reset/);
+  assert.match(prompt, /Inspect relevant files before editing/i);
+  assert.match(prompt, /Environment Context/);
+  assert.match(prompt, /Candidate checks/);
+  assert.match(prompt, /Next suggested command/);
+});
+
+test("verify prompt: includes readiness rubric and recent checks", () => {
+  const prompt = buildVerifyPrompt("current work", makeWorkflowState(), makeEnvironmentContext(), makeGitContext());
+
+  assert.match(prompt, /readiness: ready \/ not ready \/ ready with caveats/);
+  assert.match(prompt, /Recent Checks/);
+  assert.match(prompt, /npm test/);
+  assert.match(prompt, /suggested next command/);
+});
+
+test("fix-tests prompt: includes failure and reproduction-first instructions", () => {
+  const prompt = buildFixTestsPrompt("expected 200 got 500", makeWorkflowState(), makeTestSummary(), makeEnvironmentContext(), makeGitContext());
+
+  assert.match(prompt, /\/skill:testing-workflow/);
+  assert.match(prompt, /\/skill:debugging-methodology/);
+  assert.match(prompt, /expected 200 got 500/);
+  assert.match(prompt, /Reproduce or identify the failing check/);
 });
 
 // --- Test prompt ---

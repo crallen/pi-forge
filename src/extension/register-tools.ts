@@ -1,6 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type, type Static } from "typebox";
 import { collectDependencyInventory } from "./context/dependency-inventory.js";
+import { collectEnvironmentContext } from "./context/environment-context.js";
 import { collectGitReviewContext, parseReviewScope } from "./context/git-context.js";
 import { readFile } from "./context/read-file.js";
 import { collectRepoMap } from "./context/repo-map.js";
@@ -21,6 +22,9 @@ type DependencyInventoryInput = Static<typeof dependencyInventorySchema>;
 
 const testSummarySchema = Type.Object({});
 type TestSummaryInput = Static<typeof testSummarySchema>;
+
+const environmentContextSchema = Type.Object({});
+type EnvironmentContextInput = Static<typeof environmentContextSchema>;
 
 const readFileSchema = Type.Object({
   path: Type.String({ description: "Path to the file to read, relative to the repository root" }),
@@ -84,6 +88,26 @@ export function registerTools(pi: ExtensionAPI) {
       return {
         content: [{ type: "text", text: JSON.stringify(inventory, null, 2) }],
         details: inventory,
+      };
+    },
+  });
+
+  pi.registerTool({
+    name: "forge_environment_context",
+    label: "Forge Environment Context",
+    description: "Collect deterministic project metadata about runtimes, package managers, scripts, frameworks, CI, Docker, migrations, and delivery surfaces without running project code.",
+    promptSnippet: "Collect deterministic project environment metadata",
+    promptGuidelines: [
+      "Use forge_environment_context when choosing safe checks, planning lifecycle work, or assessing project runtime and delivery surfaces.",
+      "Treat detected check commands as candidates; do not run install, deploy, migration, publish, or destructive commands automatically.",
+    ],
+    parameters: environmentContextSchema,
+    async execute(_toolCallId, _params: EnvironmentContextInput, signal, _onUpdate, ctx) {
+      const root = await resolveRepositoryRoot(pi, ctx.cwd, signal);
+      const environment = await collectEnvironmentContext(root);
+      return {
+        content: [{ type: "text", text: JSON.stringify(environment, null, 2) }],
+        details: environment,
       };
     },
   });

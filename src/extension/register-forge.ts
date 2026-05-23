@@ -1,6 +1,8 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import type { ForgePromptState } from "./forge-prompt.js";
+import { collectEnvironmentContext } from "./context/environment-context.js";
 import { resolveRepositoryRoot } from "./context/repository-root.js";
+import { getActiveWorkflow } from "./workflows/dev.js";
 
 function applyStatus(ctx: { ui: { theme: any; setStatus: (id: string, text: string) => void } }) {
   const theme = ctx.ui.theme;
@@ -52,6 +54,11 @@ export function registerForge(pi: ExtensionAPI, promptState: ForgePromptState) {
         .sort();
 
       const repoInfo = await collectRepoInfo(pi, ctx.cwd, ctx.signal);
+      const environmentInfo = await collectEnvironmentInfo(pi, ctx.cwd, ctx.signal);
+      const activeWorkflow = getActiveWorkflow();
+      const workflowInfo = activeWorkflow
+        ? [`Workflow: ${activeWorkflow.kind} (${activeWorkflow.status})`, `Goal: ${activeWorkflow.goal}`].join("\n")
+        : "Workflow: none";
 
       ctx.ui.notify(
         [
@@ -60,6 +67,10 @@ export function registerForge(pi: ExtensionAPI, promptState: ForgePromptState) {
           `Default stance: Tech Lead`,
           ``,
           repoInfo,
+          ``,
+          workflowInfo,
+          ``,
+          environmentInfo,
           ``,
           `Commands: ${commands.join(", ") || "(none)"}`,
           `Tools: ${tools.join(", ") || "(none)"}`,
@@ -70,6 +81,20 @@ export function registerForge(pi: ExtensionAPI, promptState: ForgePromptState) {
       );
     },
   });
+}
+
+async function collectEnvironmentInfo(pi: ExtensionAPI, cwd: string, signal?: AbortSignal): Promise<string> {
+  try {
+    const root = await resolveRepositoryRoot(pi, cwd, signal);
+    const environment = await collectEnvironmentContext(root);
+    return [
+      `Environment: ${environment.languages.join(", ") || "unknown"}`,
+      `Package managers: ${environment.packageManagers.join(", ") || "none"}`,
+      `Candidate checks: ${environment.checkCommands.map((command) => command.label).join(", ") || "none"}`,
+    ].join("\n");
+  } catch {
+    return "Environment: unknown";
+  }
 }
 
 async function collectRepoInfo(pi: ExtensionAPI, cwd: string, signal?: AbortSignal): Promise<string> {

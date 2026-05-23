@@ -121,7 +121,7 @@ function detectPackageManagers(manifests: string[]): string[] {
   const managers = new Set<string>();
   for (const manifest of manifests) {
     const name = nodePath.basename(manifest);
-    if (name === "package-lock.json") managers.add("npm");
+    if (name === "package.json" || name === "package-lock.json") managers.add("npm");
     if (name === "pnpm-lock.yaml") managers.add("pnpm");
     if (name === "yarn.lock") managers.add("yarn");
     if (name === "go.mod") managers.add("go");
