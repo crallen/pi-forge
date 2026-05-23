@@ -69,6 +69,41 @@ Old persona-style skill names such as `auditor`, `reviewer`, and `planner` were 
 
 ---
 
+## Recommended Workflow
+
+Forge commands compose into a development lifecycle. A typical flow:
+
+```
+/dev add password reset flow       → start guided implementation
+  … implement with coding-guardrails  → plan, inspect, edit, verify
+/check                              → run safe project checks
+/verify                             → assess readiness
+/review --deep                      → structured code review
+/security --deep                    → security audit (for sensitive changes)
+/commit                             → create Conventional Commit(s)
+/pr                                 → draft PR title and description
+```
+
+Supporting commands at any point:
+
+| Command | When to use |
+|---|---|
+| `/workflow` | Check active workflow state |
+| `/workflow ready` | Mark work ready for review |
+| `/workflow done` | Mark workflow complete |
+| `/fix-tests` | Diagnose a failing check |
+| `/debug` | Investigate a bug |
+| `/spec` | Design before implementing |
+| `/test` | Plan or improve test coverage |
+| `/standup` | Summarize recent work |
+| `/ship` | Commit and push in one step |
+
+You don't have to use the full lifecycle. Each command works independently.
+`/review` is useful without `/dev`. `/check` is useful without `/workflow`.
+The lifecycle is a recommendation, not a gate.
+
+---
+
 ## Commands
 
 ### `/forge`
