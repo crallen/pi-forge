@@ -99,7 +99,7 @@ export async function collectEnvironmentContext(root: string): Promise<Environme
 
 function categorizeScript(name: string, command: string): ScriptCategory {
   const value = `${name} ${command}`.toLowerCase();
-  if (/type-?check|tsc --noemit|tsc --noemit/.test(value) || value.includes("tsc --noEmit".toLowerCase())) return "typecheck";
+  if (/type-?check|tsc\s+--noemit/.test(value)) return "typecheck";
   if (value.includes("test") || value.includes("vitest") || value.includes("jest") || value.includes("pytest")) return "test";
   if (value.includes("lint") || value.includes("eslint")) return "lint";
   if (value.includes("build")) return "build";

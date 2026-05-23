@@ -59,6 +59,13 @@ export function registerWorkflowCommand(pi: ExtensionAPI) {
         return;
       }
 
+      if (subcommand && subcommand !== "update") {
+        const message = `Unknown /workflow subcommand: ${subcommand}. Expected update, ready, done, abandon, or clear.`;
+        if (ctx.hasUI) ctx.ui.notify(message, "warning");
+        else console.log(message);
+        return;
+      }
+
       if (subcommand === "update") {
         const gitContext = await collectGitReviewContext(pi, ctx.cwd, parseReviewScope(""), ctx.signal);
         const prompt = [

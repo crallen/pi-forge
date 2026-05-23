@@ -38,7 +38,7 @@ export function createWorkflowState(args: { kind: WorkflowKind; goal: string; re
   const now = Date.now();
   return {
     schemaVersion: 1,
-    id: `wf-${now.toString(36)}`,
+    id: `wf-${now.toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
     kind: args.kind,
     status: "active",
     goal: args.goal.trim() || "Current repository work",

@@ -11,7 +11,7 @@ import { collectGitReviewContext, parseReviewScope } from "../src/extension/cont
 import { collectRepoMap } from "../src/extension/context/repo-map.js";
 import { collectTestSummary } from "../src/extension/context/test-summary.js";
 import { selectCheck } from "../src/extension/workflows/check.js";
-import { restoreActiveWorkflow, updateWorkflowState, type ForgeWorkflowState } from "../src/extension/workflows/state.js";
+import { createWorkflowState, restoreActiveWorkflow, updateWorkflowState, type ForgeWorkflowState } from "../src/extension/workflows/state.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -178,6 +178,14 @@ test("check selection prefers requested safe command", async () => {
     assert.equal(selectCheck(context, "test")?.command, "npm test");
     assert.equal(selectCheck(context, "build")?.command, "npm run build");
   });
+});
+
+test("workflow state ids include a random suffix", () => {
+  const first = createWorkflowState({ kind: "dev", goal: "first", repoRoot: "/repo" });
+  const second = createWorkflowState({ kind: "dev", goal: "second", repoRoot: "/repo" });
+
+  assert.match(first.id, /^wf-[a-z0-9]+-[a-z0-9]{4}$/);
+  assert.notEqual(first.id, second.id);
 });
 
 test("workflow state restore picks latest non-terminal state", () => {
