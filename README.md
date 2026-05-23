@@ -87,10 +87,13 @@ Collect git context and start the `code-review` workflow.
 /review unstaged                — review unstaged changes only
 /review branch main             — review changes since main
 /review focus on error handling — review current changes with extra focus
+/review --deep staged           — run a multi-phase review with broader context
 ```
 
 Forge collects branch, status, recent commits, diff stats, and relevant diffs,
 then sends a `/skill:code-review` handoff prompt. It does not modify files.
+With `--deep`, Forge also includes repository map and dependency inventory
+context and asks for an architecture, diff, dependency, and findings pass.
 
 ### `/security [focus]`
 
@@ -102,11 +105,14 @@ Collect safe repository and dependency context and start the `security-audit` wo
 /security dependencies            — audit dependency vulnerabilities
 /security config                  — audit security configuration
 /security api                     — audit API and route security
+/security --deep auth             — run a multi-phase audit with test context
 ```
 
 Forge lists dependency manifests, package manager hints, dependency names,
 security-relevant file candidates, and secret-like files by path only. It does
-not read secret-bearing file contents and does not modify files.
+not read secret-bearing file contents and does not modify files. With `--deep`,
+Forge also includes test summary context and asks for reconnaissance, data-flow,
+dependency, and findings passes.
 
 ### `/test [request]`
 
