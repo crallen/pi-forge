@@ -1,6 +1,8 @@
+import type { DependencyInventory } from "../context/dependency-inventory.js";
 import type { GitReviewContext, ReviewScope } from "../context/git-context.js";
+import type { RepoMap } from "../context/repo-map.js";
 import { describeReviewScope } from "../context/git-context.js";
-import { fenced, list, section, subsection } from "./format.js";
+import { fenced, list, recordList, section, subsection } from "./format.js";
 
 export function buildReviewPrompt(scope: ReviewScope, context: GitReviewContext): string {
   const focus = scope.focus ? `\nAdditional review focus: ${scope.focus}\n` : "";
@@ -39,6 +41,40 @@ export function buildReviewPrompt(scope: ReviewScope, context: GitReviewContext)
     "- If the diff is empty or incomplete, say exactly what context is missing.",
     "",
     formatGitContext(context),
+  ].join("\n");
+}
+
+export function buildDeepReviewPrompt(
+  scope: ReviewScope,
+  context: GitReviewContext,
+  repoMap: RepoMap,
+  dependencyInventory: DependencyInventory,
+): string {
+  const focus = scope.focus ? `\nAdditional review focus: ${scope.focus}\n` : "";
+
+  return [
+    "/skill:code-review",
+    "",
+    "Perform a deep multi-phase code review using the code-review workflow.",
+    "",
+    `Scope: ${describeReviewScope(scope)}.${focus}`,
+    "Phase 1 — Architecture: Use forge_repo_map to understand module structure and identify risk areas.",
+    "Phase 2 — Diff analysis: Use forge_git_context to inspect the current diff in full.",
+    "Phase 3 — Dependency context: Use forge_dependency_inventory to check for relevant dependency risks.",
+    "Phase 4 — Findings: Produce the standard code-review output format with all findings classified by severity.",
+    "",
+    "Instructions:",
+    "- Do not modify files.",
+    "- Use the available tools to gather evidence before forming conclusions.",
+    "- Inspect specific files implicated by the diff before reporting findings.",
+    "- Every finding must reference a file path and line.",
+    "- If repository context is incomplete, say exactly what context is missing.",
+    "",
+    formatGitContext(context),
+    "",
+    formatRepoMap(repoMap),
+    "",
+    formatDependencyInventory(dependencyInventory),
   ].join("\n");
 }
 
@@ -86,5 +122,35 @@ function formatSection(diffSection: GitReviewContext["sections"][number]): strin
     fenced(diffSection.stat || "(empty)"),
     "Diff:",
     fenced(diffSection.diff || "(empty)"),
+  );
+}
+
+function formatRepoMap(repoMap: RepoMap): string {
+  return section(
+    "Repository Context",
+    `Root: ${repoMap.root}`,
+    repoMap.truncated ? "Note: repository file listing was truncated." : "Note: repository file listing completed within scan limits.",
+    subsection("Dependency and build manifests", list(repoMap.manifests, "(none discovered)")),
+    subsection("Security-relevant file candidates", list(repoMap.securityRelevantFiles, "(none discovered)")),
+    subsection("Secret-like files intentionally not read", list(repoMap.secretLikeFiles, "(none discovered)")),
+    subsection("Repository file sample", list(repoMap.files.slice(0, 120), "(none discovered)")),
+    repoMap.errors.length > 0 ? subsection("Collection errors", list(repoMap.errors)) : "",
+  );
+}
+
+function formatDependencyInventory(inventory: DependencyInventory): string {
+  return section(
+    "Dependency Inventory",
+    inventory.truncated ? "Note: dependency inventory was truncated." : "Note: dependency inventory completed within scan limits.",
+    subsection("Package managers", list(inventory.packageManagers, "(none discovered)")),
+    subsection("Manifests", list(inventory.manifests, "(none discovered)")),
+    ...(inventory.packageJson ?? []).map((manifest) => subsection(
+      `package.json: ${manifest.path}`,
+      subsection("Scripts", recordList(manifest.scripts, "(none discovered)")),
+      subsection("Dependencies", list(manifest.dependencies, "(none discovered)")),
+      subsection("Dev dependencies", list(manifest.devDependencies, "(none discovered)")),
+      subsection("Peer dependencies", list(manifest.peerDependencies, "(none discovered)")),
+    )),
+    inventory.errors.length > 0 ? subsection("Collection errors", list(inventory.errors)) : "",
   );
 }

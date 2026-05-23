@@ -307,6 +307,12 @@ run "command:review/redacts-secret-diff" \
   "" \
   "$REVIEW_REPO_SECRET"
 
+run "command:review/deep" \
+  "print mode should show a deep multi-phase /skill:code-review handoff with Architecture, Diff analysis, Dependency context, Git Context, Repository Context, and Dependency Inventory sections" \
+  "/review --deep staged" \
+  "" \
+  "$REVIEW_REPO_STAGED"
+
 run "command:review/non-git" \
   "print mode should degrade gracefully, say the cwd is not a git repository, and ask for diff/file paths instead of inventing findings" \
   "/review"
@@ -315,6 +321,12 @@ SECURITY_REPO="$(setup_security_repo)"
 run "command:security/repo-context" \
   "print mode should show a /skill:security-audit handoff with package.json, auth.js, cors.js, and .env listed as intentionally not read" \
   "/security auth and CORS" \
+  "" \
+  "$SECURITY_REPO"
+
+run "command:security/deep" \
+  "print mode should show a deep multi-phase /skill:security-audit handoff with Reconnaissance, Data flow, Dependencies, Repository Context, Dependency Inventory, and Test Summary sections" \
+  "/security --deep auth" \
   "" \
   "$SECURITY_REPO"
 
@@ -339,6 +351,12 @@ run "command:debug/git-context" \
 run "command:commit/git-context" \
   "print mode should show a /skill:git-conventions handoff that creates a commit for one logical change, asks before splitting, avoids committing when there are no changes, and does not rewrite history" \
   "/commit" \
+  "" \
+  "$REVIEW_REPO_UNSTAGED"
+
+run "command:ship/commit-and-push" \
+  "print mode should show a /skill:git-conventions handoff with Additional instructions: commit and push, and the same inspect/classify/stage-and-commit safeguards as /commit" \
+  "/ship" \
   "" \
   "$REVIEW_REPO_UNSTAGED"
 

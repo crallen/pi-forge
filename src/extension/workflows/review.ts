@@ -1,6 +1,8 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { collectDependencyInventory } from "../context/dependency-inventory.js";
 import { collectGitReviewContext, parseReviewScope } from "../context/git-context.js";
-import { buildReviewPrompt } from "../prompt-builders/review-prompt.js";
+import { collectRepoMap } from "../context/repo-map.js";
+import { buildDeepReviewPrompt, buildReviewPrompt } from "../prompt-builders/review-prompt.js";
 
 export function registerReviewCommand(pi: ExtensionAPI) {
   let currentCwd = process.cwd();
@@ -18,6 +20,7 @@ export function registerReviewCommand(pi: ExtensionAPI) {
 
     getArgumentCompletions: async (prefix) => {
       const staticOptions = [
+        { value: "--deep", label: "--deep        Run a multi-phase deep review" },
         { value: "staged", label: "staged        Review staged changes only" },
         { value: "unstaged", label: "unstaged      Review unstaged changes only" },
       ];
@@ -36,14 +39,26 @@ export function registerReviewCommand(pi: ExtensionAPI) {
 
     handler: async (args, ctx) => {
       currentCwd = ctx.cwd;
-      const scope = parseReviewScope(args);
+      const parsedArgs = parseDeepArgs(args);
+      const scope = parseReviewScope(parsedArgs.args);
       const context = await collectGitReviewContext(pi, ctx.cwd, scope, ctx.signal);
 
-      if (ctx.hasUI && context.errors.length > 0) {
-        ctx.ui.notify(`/review: context collection had errors — results may be incomplete:\n${context.errors.map((e) => `• ${e}`).join("\n")}`, "warning");
+      const deepContext = parsedArgs.deep && context.repoRoot
+        ? await Promise.all([collectRepoMap(context.repoRoot), collectDependencyInventory(context.repoRoot)])
+        : undefined;
+
+      const errors = [
+        ...context.errors,
+        ...(deepContext?.[0].errors ?? []),
+        ...(deepContext?.[1].errors ?? []),
+      ];
+      if (ctx.hasUI && errors.length > 0) {
+        ctx.ui.notify(`/review: context collection had errors — results may be incomplete:\n${errors.map((e) => `• ${e}`).join("\n")}`, "warning");
       }
 
-      const prompt = buildReviewPrompt(scope, context);
+      const prompt = parsedArgs.deep && deepContext
+        ? buildDeepReviewPrompt(scope, context, deepContext[0], deepContext[1])
+        : buildReviewPrompt(scope, context);
 
       if (!ctx.hasUI) {
         console.log(prompt);
@@ -58,6 +73,12 @@ export function registerReviewCommand(pi: ExtensionAPI) {
       }
     },
   });
+}
+
+function parseDeepArgs(args: string): { deep: boolean; args: string } {
+  const tokens = args.trim().split(/\s+/).filter(Boolean);
+  const deep = tokens.includes("--deep");
+  return { deep, args: tokens.filter((token) => token !== "--deep").join(" ") };
 }
 
 async function listBranches(pi: ExtensionAPI, cwd: string): Promise<string[]> {

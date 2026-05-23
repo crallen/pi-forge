@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildReviewPrompt } from "../src/extension/prompt-builders/review-prompt.js";
-import { buildSecurityPrompt } from "../src/extension/prompt-builders/security-prompt.js";
+import { buildDeepReviewPrompt, buildReviewPrompt } from "../src/extension/prompt-builders/review-prompt.js";
+import { buildDeepSecurityPrompt, buildSecurityPrompt } from "../src/extension/prompt-builders/security-prompt.js";
 import { buildTestPrompt } from "../src/extension/prompt-builders/test-prompt.js";
 import { buildDebugPrompt } from "../src/extension/prompt-builders/debug-prompt.js";
 import { buildSpecPrompt } from "../src/extension/prompt-builders/spec-prompt.js";
@@ -136,6 +136,19 @@ test("review prompt: full codebase review triggered when no diff", () => {
   assert.match(prompt, /forge_repo_map/);
 });
 
+test("deep review prompt: includes phases and enriched context", () => {
+  const scope: ReviewScope = { kind: "staged", focus: "correctness" };
+  const prompt = buildDeepReviewPrompt(scope, makeGitContext(), makeRepoMap(), makeDependencyInventory());
+
+  assert.match(prompt, /Perform a deep multi-phase code review/);
+  assert.match(prompt, /Phase 1 — Architecture/);
+  assert.match(prompt, /Phase 2 — Diff analysis/);
+  assert.match(prompt, /forge_dependency_inventory/);
+  assert.match(prompt, /Repository Context/);
+  assert.match(prompt, /Dependency Inventory/);
+  assert.match(prompt, /Additional review focus: correctness/);
+});
+
 // --- Security prompt ---
 
 test("security prompt: contains skill invocation and read-first instruction", () => {
@@ -162,6 +175,18 @@ test("security prompt: default focus when no args", () => {
   const prompt = buildSecurityPrompt("", makeRepoMap(), makeDependencyInventory());
 
   assert.match(prompt, /Requested focus: repository security posture/);
+});
+
+test("deep security prompt: includes phases and test summary", () => {
+  const prompt = buildDeepSecurityPrompt("auth", makeRepoMap(), makeDependencyInventory(), makeTestSummary());
+
+  assert.match(prompt, /Perform a deep multi-phase security audit/);
+  assert.match(prompt, /Phase 1 — Reconnaissance/);
+  assert.match(prompt, /Phase 2 — Data flow/);
+  assert.match(prompt, /forge_dependency_inventory/);
+  assert.match(prompt, /Test Summary/);
+  assert.match(prompt, /tests\/auth\.test\.ts/);
+  assert.match(prompt, /Requested focus: auth/);
 });
 
 // --- Test prompt ---
