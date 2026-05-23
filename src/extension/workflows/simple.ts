@@ -8,6 +8,13 @@ import { buildDebugPrompt } from "../prompt-builders/debug-prompt.js";
 import { buildSpecPrompt } from "../prompt-builders/spec-prompt.js";
 import { buildCommitPrompt } from "../prompt-builders/commit-prompt.js";
 
+type WorkflowCommandContext = {
+  cwd: string;
+  signal?: AbortSignal;
+  hasUI: boolean;
+  ui: { notify(message: string, level?: "info" | "warning" | "error"): void };
+};
+
 export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
   pi.registerCommand("test", {
     description: "Start a testing workflow with repository test context",
@@ -66,42 +73,46 @@ export function registerSimpleWorkflowCommands(pi: ExtensionAPI) {
 
   pi.registerCommand("commit", {
     description: "Create Conventional Commit commits for current changes",
-    getArgumentCompletions: (prefix) => {
-      const options = [
-        { value: "--dry-run", label: "--dry-run         Draft commit messages only, do not commit" },
-        { value: "feat", label: "feat              Hint: changes add a new feature" },
-        { value: "fix", label: "fix               Hint: changes fix a bug" },
-        { value: "refactor", label: "refactor          Hint: changes restructure without behavior change" },
-        { value: "chore", label: "chore             Hint: maintenance, dependency, or config change" },
-      ];
-      return options.filter((item) => item.value.startsWith(prefix));
-    },
+    getArgumentCompletions: getCommitCompletions,
     handler: async (args, ctx) => {
-      const gitContext = await collectGitReviewContext(pi, ctx.cwd, parseReviewScope(""), ctx.signal);
-      warnIfErrors(ctx, gitContext.errors, "commit");
-      deliver(pi, ctx, buildCommitPrompt(args, gitContext), "commit");
+      await runCommitWorkflow(pi, args, ctx, "commit");
+    },
+  });
+
+  pi.registerCommand("ship", {
+    description: "Shortcut for /commit commit and push",
+    getArgumentCompletions: getCommitCompletions,
+    handler: async (args, ctx) => {
+      const instructions = ["commit and push", args.trim()].filter(Boolean).join(" ");
+      await runCommitWorkflow(pi, instructions, ctx, "ship");
     },
   });
 }
 
-function registerRepoMapCommand(
+function getCommitCompletions(prefix: string) {
+  const options = [
+    { value: "--dry-run", label: "--dry-run         Draft commit messages only, do not commit" },
+    { value: "feat", label: "feat              Hint: changes add a new feature" },
+    { value: "fix", label: "fix               Hint: changes fix a bug" },
+    { value: "refactor", label: "refactor          Hint: changes restructure without behavior change" },
+    { value: "chore", label: "chore             Hint: maintenance, dependency, or config change" },
+  ];
+  return options.filter((item) => item.value.startsWith(prefix));
+}
+
+async function runCommitWorkflow(
   pi: ExtensionAPI,
-  name: string,
-  description: string,
-  builder: (args: string, repoMap: Awaited<ReturnType<typeof collectRepoMap>>) => string,
+  args: string,
+  ctx: WorkflowCommandContext,
+  commandName: string,
 ) {
-  pi.registerCommand(name, {
-    description,
-    handler: async (args, ctx) => {
-      const root = await resolveRepositoryRoot(pi, ctx.cwd, ctx.signal);
-      const repoMap = await collectRepoMap(root);
-      deliver(pi, ctx, builder(args, repoMap), name);
-    },
-  });
+  const gitContext = await collectGitReviewContext(pi, ctx.cwd, parseReviewScope(""), ctx.signal);
+  warnIfErrors(ctx, gitContext.errors, commandName);
+  deliver(pi, ctx, buildCommitPrompt(args, gitContext), commandName);
 }
 
 function warnIfErrors(
-  ctx: { hasUI: boolean; ui: { notify(message: string, level?: "info" | "warning" | "error"): void } },
+  ctx: WorkflowCommandContext,
   errors: string[],
   commandName: string,
 ) {
@@ -111,7 +122,7 @@ function warnIfErrors(
 
 function deliver(
   pi: ExtensionAPI,
-  ctx: { hasUI: boolean; ui: { notify(message: string, level?: "info" | "warning" | "error"): void } },
+  ctx: WorkflowCommandContext,
   prompt: string,
   commandName: string,
 ) {

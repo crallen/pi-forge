@@ -195,6 +195,17 @@ The `--dry-run` flag can be combined with other instructions:
 /commit --dry-run refactor  — draft messages with a refactor type hint
 ```
 
+### `/ship [instructions]`
+
+Shortcut for `/commit commit and push`. It uses the same Conventional Commit
+workflow and completions as `/commit`, then asks the agent to push after a
+successful commit.
+
+```
+/ship       — commit current changes and push
+/ship fix   — commit and push with a fix type hint
+```
+
 ---
 
 ## Tools
