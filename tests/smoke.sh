@@ -132,7 +132,7 @@ run() {
     # without overwhelming the context with long design documents.
     local raw_output
     # shellcheck disable=SC2086
-    raw_output="$(cd "$run_cwd" && pi -e "$REPO_ROOT" $flags --print "$prompt" 2>&1)" \
+    raw_output="$(cd "$run_cwd" && pi --no-extensions -e "$REPO_ROOT" $flags --print "$prompt" 2>&1)" \
       || raw_output="(pi exited with non-zero status)"
     echo "$raw_output"
     local truncated
@@ -152,7 +152,7 @@ run() {
     } >> "$RESULT_FILE"
   else
     # shellcheck disable=SC2086
-    (cd "$run_cwd" && pi -e "$REPO_ROOT" $flags --print "$prompt") || echo "(pi exited with non-zero status)"
+    (cd "$run_cwd" && pi --no-extensions -e "$REPO_ROOT" $flags --print "$prompt") || echo "(pi exited with non-zero status)"
   fi
 
   echo "---------------------------------------------------------------------------------"
@@ -330,6 +330,36 @@ run "command:security/deep" \
   "" \
   "$SECURITY_REPO"
 
+run "command:dev/guided-workflow" \
+  "print mode should show a /skill:coding-guardrails handoff with guided development expectations, Environment Context, Repository Context, Test Summary, and Git Context" \
+  "/dev add password reset flow" \
+  "" \
+  "$SECURITY_REPO"
+
+run "command:check/safe-selection" \
+  "print mode should execute the safe npm test script and return a JSON check result without installing dependencies or running deploy commands" \
+  "/check test" \
+  "" \
+  "$SECURITY_REPO"
+
+run "command:verify/readiness" \
+  "print mode should show a readiness assessment prompt with Active Workflow, Recent Checks, Environment Context, and Git Context sections" \
+  "/verify auth change" \
+  "" \
+  "$SECURITY_REPO"
+
+run "command:fix-tests/failure" \
+  "print mode should show testing-workflow and debugging-methodology handoffs with reproduction-first instructions and the provided failure text" \
+  "/fix-tests expected 200 got 500" \
+  "" \
+  "$SECURITY_REPO"
+
+run "command:workflow/no-active" \
+  "print mode should report that there is no active Forge workflow rather than inventing state" \
+  "/workflow" \
+  "" \
+  "$SECURITY_REPO"
+
 run "command:test/repo-context" \
   "print mode should show a /skill:testing-workflow handoff with package.json and test guidance" \
   "/test plan coverage for auth routes" \
@@ -363,6 +393,12 @@ run "command:ship/commit-and-push" \
 run "tool:dependency-inventory" \
   "should use forge_dependency_inventory and report package.json, npm/package metadata, express, jsonwebtoken, and the test script without running installs or audits" \
   "Use forge_dependency_inventory to summarize this repo's dependency context." \
+  "" \
+  "$SECURITY_REPO"
+
+run "tool:environment-context" \
+  "should use forge_environment_context and report npm, JavaScript, node runtime, Express, the test script, and candidate checks without running project code" \
+  "Use forge_environment_context to summarize this repo's environment." \
   "" \
   "$SECURITY_REPO"
 
@@ -530,7 +566,7 @@ Then give a brief summary: overall pass rate, any patterns in the failures, and 
 EOF
   cat "$RESULT_FILE" >> "$INSPECT_PROMPT_FILE"
 
-  pi -e "$REPO_ROOT" --print "$(cat "$INSPECT_PROMPT_FILE")" \
+  pi --no-extensions -e "$REPO_ROOT" --print "$(cat "$INSPECT_PROMPT_FILE")" \
     || echo "(pi exited with non-zero status during inspection)"
 else
   echo
