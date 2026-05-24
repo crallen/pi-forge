@@ -32,6 +32,7 @@ export function buildDeepSecurityPrompt(
   repoMap: RepoMap,
   dependencyInventory: DependencyInventory,
   testSummary: TestSummary,
+  subagentFindings?: string,
 ): string {
   const focus = args.trim();
 
@@ -59,7 +60,17 @@ export function buildDeepSecurityPrompt(
     formatDependencyInventory(dependencyInventory),
     "",
     formatTestSummary(testSummary),
-  ].join("\n");
+    subagentFindings ? formatSubagentFindings(subagentFindings) : "",
+  ].filter(Boolean).join("\n");
+}
+
+function formatSubagentFindings(findings: string): string {
+  return section(
+    "Subagent Security Findings",
+    "A dedicated security subagent inspected the codebase independently. Use these findings as input — validate them against the source before including in your final output.",
+    "",
+    findings,
+  );
 }
 
 function formatRepoMap(repoMap: RepoMap): string {

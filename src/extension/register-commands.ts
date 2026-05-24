@@ -4,6 +4,7 @@ import { registerDevCommand } from "./workflows/dev.js";
 import { registerFixTestsCommand } from "./workflows/fix-tests.js";
 import { registerLogCommands } from "./workflows/log-commands.js";
 import { registerPrCommand } from "./workflows/pr.js";
+import { registerResearchCommand } from "./workflows/research.js";
 import { registerReviewCommand } from "./workflows/review.js";
 import { registerSecurityCommand } from "./workflows/security.js";
 import { registerSimpleWorkflowCommands } from "./workflows/simple.js";
@@ -21,4 +22,5 @@ export function registerCommands(pi: ExtensionAPI) {
   registerFixTestsCommand(pi);
   registerSimpleWorkflowCommands(pi);
   registerLogCommands(pi);
+  registerResearchCommand(pi);
 }

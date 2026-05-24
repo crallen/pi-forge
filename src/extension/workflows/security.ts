@@ -4,6 +4,7 @@ import { collectRepoMap } from "../context/repo-map.js";
 import { resolveRepositoryRoot } from "../context/repository-root.js";
 import { collectTestSummary } from "../context/test-summary.js";
 import { buildDeepSecurityPrompt, buildSecurityPrompt } from "../prompt-builders/security-prompt.js";
+import { runSubagent } from "../subagents/index.js";
 
 export function registerSecurityCommand(pi: ExtensionAPI) {
   pi.registerCommand("security", {
@@ -34,8 +35,32 @@ export function registerSecurityCommand(pi: ExtensionAPI) {
         ctx.ui.notify(`/security: context collection had errors — results may be incomplete:\n${errors.map((e) => `• ${e}`).join("\n")}`, "warning");
       }
 
+      let subagentFindings: string | undefined;
+      if (parsedArgs.deep) {
+        const securityFiles = repoMap.securityRelevantFiles.slice(0, 30).join("\n");
+        const task = [
+          `Audit the following security-relevant files for vulnerabilities:`,
+          securityFiles || "(no security-relevant files discovered — perform a general audit)",
+          parsedArgs.args ? `\nFocus area: ${parsedArgs.args}` : "",
+        ].filter(Boolean).join("\n");
+
+        if (ctx.hasUI) ctx.ui.setStatus("forge-subagent", "Running security subagent…");
+        const result = await runSubagent({
+          agent: "security",
+          task,
+          cwd: root,
+          signal: ctx.signal,
+        });
+        if (ctx.hasUI) ctx.ui.setStatus("forge-subagent", "");
+        if (result.output && !result.error) {
+          subagentFindings = result.output;
+        } else if (result.error && ctx.hasUI) {
+          ctx.ui.notify(`/security: subagent failed (${result.error}) — continuing without deep findings`, "warning");
+        }
+      }
+
       const prompt = parsedArgs.deep && testSummary
-        ? buildDeepSecurityPrompt(parsedArgs.args, repoMap, dependencyInventory, testSummary)
+        ? buildDeepSecurityPrompt(parsedArgs.args, repoMap, dependencyInventory, testSummary, subagentFindings)
         : buildSecurityPrompt(parsedArgs.args, repoMap, dependencyInventory);
 
       if (!ctx.hasUI) {
