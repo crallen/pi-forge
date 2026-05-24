@@ -122,6 +122,7 @@ skills only when needed, and verify targeted checks before delivery.
 ```
 /dev add password reset flow  — start an implementation lane for a goal
 /dev                          — continue from the current repository state
+/dev clear                    — clear the current dev goal
 ```
 
 ### `/review [scope] [focus]`

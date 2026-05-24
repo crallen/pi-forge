@@ -26,7 +26,31 @@ export function registerDevCommand(pi: ExtensionAPI) {
 
   pi.registerCommand("dev", {
     description: "Start a guided development workflow for a goal",
+    getArgumentCompletions: (prefix) => [
+      { value: "clear", label: "clear        Clear the current dev goal" },
+    ].filter((item) => item.value.startsWith(prefix)),
     handler: async (args, ctx) => {
+      const command = args.trim();
+      if (command === "clear" || command === "--clear") {
+        const existingWorkflow = activeWorkflow;
+        if (!existingWorkflow) {
+          const message = "No active dev goal to clear.";
+          if (ctx.hasUI) ctx.ui.notify(message, "info");
+          else console.log(message);
+          return;
+        }
+
+        const updated = updateWorkflowState(pi, existingWorkflow, { status: "abandoned" });
+        activeWorkflow = undefined;
+        if (ctx.hasUI) {
+          ctx.ui.setStatus("forge-workflow", "");
+          ctx.ui.notify(`Cleared dev goal: ${updated.goal}`, "info");
+        } else {
+          console.log(`Cleared dev goal: ${updated.goal}`);
+        }
+        return;
+      }
+
       const root = await resolveRepositoryRoot(pi, ctx.cwd, ctx.signal);
       const [environment, repoMap, dependencyInventory, testSummary, gitContext] = await Promise.all([
         collectEnvironmentContext(root),
