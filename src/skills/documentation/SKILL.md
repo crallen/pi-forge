@@ -142,40 +142,41 @@ Include a real `curl` example. People will copy-paste it. Make sure it works.
 
 ## ADR Template
 
+ADRs are for future maintainers. They capture that a decision was made and why — not ceremony for its own sake.
+
+Create an ADR only when all three gates pass:
+
+1. **Hard to reverse** — the cost of changing your mind later is meaningful.
+2. **Surprising without context** — a future reader will wonder why this path was chosen.
+3. **Real trade-off** — credible alternatives existed and one was chosen for a reason.
+
+If a decision is easy to reverse, obvious, or had no real alternative, skip the ADR.
+
+ADRs live in `docs/adr/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc. Create the directory lazily when the first ADR is needed.
+
+Most ADRs can be this small:
+
 ```markdown
-# ADR-NNN: Title of Decision
+# Short title of the decision
 
-**Status:** Proposed | Accepted | Deprecated | Superseded by ADR-XXX
-**Date:** YYYY-MM-DD
-
-## Context
-
-What problem requires a decision? What constraints exist? What forces are at play?
-
-## Decision
-
-What was decided? State it clearly and directly.
-
-## Alternatives Considered
-
-### Alternative A: Name
-- **Pros:** …
-- **Cons:** …
-- **Why rejected:** …
-
-## Consequences
-
-### Positive
-- What becomes easier or better?
-
-### Negative
-- What becomes harder or worse?
-
-### Risks
-- What could go wrong? How can the risk be mitigated?
+One to three sentences: what context forced the decision, what we decided, and why this option won over the real alternatives.
 ```
 
-ADRs are for future maintainers. The most valuable section is "why rejected" — it answers the question that comes up six months later: "why didn't we just do X?"
+Optional sections are allowed only when they add value:
+
+- **Status** (`proposed | accepted | deprecated | superseded by ADR-NNNN`) when the decision may change.
+- **Considered Options** when rejected alternatives are worth remembering.
+- **Consequences** when downstream effects are non-obvious.
+
+Good ADR candidates:
+
+- Architectural shape: monorepo, event sourcing, service boundaries.
+- Integration patterns between contexts.
+- Technology choices with meaningful lock-in.
+- Boundary and ownership decisions.
+- Deliberate deviations from the obvious path.
+- Constraints not visible in code.
+- Non-obvious rejected alternatives.
 
 ---
 

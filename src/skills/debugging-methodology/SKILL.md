@@ -13,9 +13,37 @@ The bug is in there. Your job is to find it, prove it, and prevent it from comin
 
 Work through these in order. Don't skip ahead. Most debugging failures are caused by attempting to fix before understanding.
 
+## Phase 0: Build a Feedback Loop
+
+The feedback loop is the skill. Everything else is mechanical. If you have a fast, deterministic, agent-runnable pass/fail signal for the bug, you can debug systematically. Without one, no amount of staring at code will save you.
+
+Spend disproportionate effort here. Be creative. Refuse to proceed on vibes.
+
+Try to construct a loop in roughly this order:
+
+1. **Failing test** at whatever seam reaches the bug — unit, integration, or E2E.
+2. **HTTP script** against a running dev server.
+3. **CLI invocation** with fixture input, diffing output against a known-good result.
+4. **Headless browser script** with Playwright, Puppeteer, or the project's equivalent.
+5. **Captured trace replay** through the code path in isolation.
+6. **Throwaway harness** that boots the smallest useful subset of the system.
+7. **Property or fuzz loop** for "sometimes wrong output" bugs.
+8. **Bisection harness** for regressions between known commits, datasets, or versions.
+9. **Differential loop** that runs the same input through old vs. new behavior and diffs output.
+
+Treat the loop itself as a product:
+
+- Make it faster by caching setup and narrowing scope.
+- Make the signal sharper by asserting the specific symptom, not just "didn't crash".
+- Make it more deterministic by pinning time, seeds, filesystem state, and network behavior.
+
+For non-deterministic bugs, the goal is a higher reproduction rate, not a perfect repro. Loop the trigger 100x, parallelize it, add stress, narrow timing windows, and inject sleeps where they expose races. A 50% flake is debuggable; a 1% flake probably isn't.
+
+If you genuinely cannot build a loop, stop and say so. List what you tried and ask for access to the reproducing environment, captured artifacts (logs, HAR, trace, dump, recording), or permission to add temporary instrumentation. Do not proceed to confident hypotheses without a loop.
+
 ## Phase 1: Reproduce
 
-A bug you can't reproduce is a bug you can't fix. Period.
+A bug you can't reproduce through a feedback loop is a bug you can't fix. Period.
 
 **First-response gate:** When a bug is reported, your first response is always to gather reproduction information — not to theorize, not to suggest likely causes, not to propose fixes. If the report doesn't include reliable reproduction steps, ask for them before doing anything else. A bug report with symptoms ("users sometimes see other users' data") is not a reproduction. Ask: under what conditions, how frequently, what do the logs show, can they trigger it on demand?
 

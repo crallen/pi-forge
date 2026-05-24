@@ -28,6 +28,47 @@ Tests aren't coverage artifacts. They're how vague requirements become verifiabl
 - **Multi-step work:** Pair each step with a `verify:` check so progress is observable.
 - **Avoid speculative matrices.** Don't write 50 tests for hypothetical behaviors the code doesn't implement.
 
+## TDD Loop
+
+Use test-driven development when the behavior is important, ambiguous, or easy to regress. Work in vertical slices: one behavior, one failing test, one minimal implementation, then refactor.
+
+```
+RED → GREEN → REFACTOR
+```
+
+### RED
+
+Write one test that describes behavior through a public interface. It should fail for the right reason. If it fails because setup is broken or the assertion is vague, fix the test before touching production code.
+
+### GREEN
+
+Write the smallest implementation that makes that test pass. Don't add speculative behavior for the next test. Don't refactor while red.
+
+### REFACTOR
+
+Once green, clean up duplication, names, or structure while preserving behavior. The test should keep passing through the refactor.
+
+### Vertical Slice Discipline
+
+Do not write all tests first and then all implementation. That's horizontal slicing: it tests imagined behavior, locks in guessed APIs, and delays feedback until every assumption is expensive to change.
+
+Prefer:
+
+1. One behavior test.
+2. One minimal implementation.
+3. One refactor pass.
+4. Repeat with what you learned.
+
+Per-cycle checklist:
+
+- [ ] The test describes behavior, not implementation.
+- [ ] The test uses the public interface.
+- [ ] The test would survive an internal refactor.
+- [ ] The production code is minimal for this behavior.
+- [ ] No speculative feature was added for a future test.
+
+You can't test everything. Confirm which behaviors matter most, then focus on critical paths and complex logic.
+
 ## The Test Pyramid
 
 ```

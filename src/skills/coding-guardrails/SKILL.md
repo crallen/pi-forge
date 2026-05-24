@@ -57,6 +57,7 @@ The diff is the contract. Every line in it should defend itself.
 
 - Do not refactor adjacent code because you noticed it.
 - Do not reformat files, rename symbols, or rewrite comments unless your change requires it.
+- Exception: when the `prototype` skill is explicitly active, broad throwaway changes are allowed because learning is the goal.
 - Match the existing style and conventions even if you'd prefer a different style.
 - Clean up imports, variables, or functions only when **your** change made them unused.
 - If you notice unrelated issues, mention them separately. Don't fix them in the same change.
