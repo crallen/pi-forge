@@ -68,7 +68,7 @@ name: research
 description: Gather external context from web sources
 model: anthropic/claude-sonnet-4
 thinking: medium
-tools: forge_web_search, forge_fetch_url, bash
+tools: bash
 timeout: 90000
 maxOutputBytes: 40000
 ---
@@ -78,7 +78,7 @@ information — documentation, API references, library usage, changelog entries,
 or community solutions — for a specific question.
 
 Rules:
-- Use forge_web_search to find sources, then forge_fetch_url to read them.
+- Use bash with curl to fetch web pages and APIs.
 - Prefer official documentation and primary sources over blog posts.
 - Be concise. Output a structured summary with source URLs.
 - Do not fabricate information. If you cannot find it, say so.
@@ -102,7 +102,7 @@ interface AgentDefinition {
 function loadAgents(): AgentDefinition[]
 ```
 
-Reads `src/extension/subagents/*.md` at extension load time. Parses frontmatter + body.
+Reads `src/extension/subagents/*.md` at extension load time. Parses frontmatter + body. Malformed definitions are logged as warnings and skipped — a broken agent file must not prevent the extension from loading.
 
 ### 3. Runner: `src/extension/subagents/runner.ts`
 
@@ -134,12 +134,11 @@ async function runSubagentsParallel(options: {
 
 Implementation:
 1. Look up agent definition by name.
-2. Resolve the Pi binary (from `process.argv[1]`).
-3. Spawn: `pi --print --no-extensions --no-skills --system-prompt <file> --model <model> "<task>"`
+2. Spawn: `pi --print --no-extensions --no-skills --system-prompt <file> --model <model> "<task>"`
 4. Pipe stdout/stderr, enforce timeout, truncate output.
 5. Return structured result.
 
-Tools are limited by using `--no-extensions` and only granting built-in tools. The system prompt instructs the agent which tools to use; Pi's built-in tools (`read`, `bash`, `grep`, `find`, `ls`, `edit`, `write`) are always available but the agent prompt constrains behavior.
+Tools are limited by using `--no-extensions` and only granting built-in tools. The system prompt instructs the agent which tools to use; Pi's built-in tools (`read`, `bash`, `grep`, `find`, `ls`, `edit`, `write`) are always available but the agent prompt constrains behavior. The `tools` field in frontmatter is documentary — enforcement is via prompt instruction, not a hard mechanism.
 
 ### 4. Built-in agents
 
@@ -148,7 +147,7 @@ Tools are limited by using `--no-extensions` and only granting built-in tools. T
 | `scout` | Map files, flows, entry points for a question | read, grep, find, ls, bash | No |
 | `reviewer` | Review code against a rubric | read, grep, find, ls | No |
 | `security` | Audit code for vulnerabilities | read, grep, find, ls, bash | No |
-| `research` | Gather external context from the web | forge_web_search, forge_fetch_url, bash | No |
+| `research` | Gather external context from the web | bash (curl) | No |
 
 Start with four. Add more only when a concrete command needs them.
 
@@ -159,7 +158,7 @@ Commands that will use subagents (future work, not part of this spec's implement
 - `/review --deep` → spawn `reviewer` with the diff summary as task
 - `/security --deep` → spawn `security` with security-relevant file list as task
 - `/dev` → optionally spawn `scout` before planning when the goal touches unfamiliar code
-- `/research <question>` → spawn `research` to gather external docs, API references, or library usage patterns
+- `/research <question>` → spawn `research` to gather external docs, API references, or library usage patterns (using curl via bash)
 
 These integrations are separate changes after the runner is proven.
 
@@ -167,9 +166,9 @@ These integrations are separate changes after the runner is proven.
 
 - **Timeout:** Kill child process after `timeout` ms. Return partial stdout with `error: "timeout"`.
 - **Non-zero exit:** Return whatever stdout was captured. Set `exitCode` and `error`.
-- **Output too large:** Head-truncate to `maxOutputBytes`. Set `truncated: true`.
+- **Output too large:** Tail-truncate (keep first N bytes) to `maxOutputBytes`. Set `truncated: true`.
 - **Agent not found:** Return immediately with `error: "unknown agent: <name>"`.
-- **Pi binary not found:** Return with `error: "could not resolve pi binary"`.
+- **Pi binary not found:** Return with `error: "pi not found in PATH"`.
 - **Signal abort:** Kill child on parent abort signal.
 
 ## Testing
@@ -183,7 +182,7 @@ These integrations are separate changes after the runner is proven.
 ## Risks & Open Questions
 
 - **Risk:** Pi binary resolution differs across install methods (nvm, global, mise).
-  **Mitigation:** Use `process.argv[1]` like `amosblomqvist/pi-subagents` does. Fall back to `pi` in PATH.
+  **Mitigation:** Spawn `"pi"` directly via PATH. Since this is a Pi extension, we can assume `pi` is available.
 
 - **Risk:** Child processes inherit environment variables including API keys (desired) but also `PI_*` env vars that might interfere.
   **Mitigation:** Strip `PI_*` vars except credential-related ones when spawning.
