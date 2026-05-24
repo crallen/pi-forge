@@ -2,11 +2,13 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type, type Static } from "typebox";
 import { collectDependencyInventory } from "./context/dependency-inventory.js";
 import { collectEnvironmentContext } from "./context/environment-context.js";
+import { fetchUrl } from "./context/fetch-url.js";
 import { collectGitReviewContext, parseReviewScope } from "./context/git-context.js";
 import { readFile } from "./context/read-file.js";
 import { collectRepoMap } from "./context/repo-map.js";
 import { resolveRepositoryRoot } from "./context/repository-root.js";
 import { collectTestSummary } from "./context/test-summary.js";
+import { braveWebSearch } from "./context/web-search.js";
 
 const gitContextSchema = Type.Object({
   scope: Type.Optional(Type.String({ description: "Review scope: all, staged, unstaged, branch <base>, or focus text" })),
@@ -26,6 +28,19 @@ type TestSummaryInput = Static<typeof testSummarySchema>;
 const environmentContextSchema = Type.Object({});
 type EnvironmentContextInput = Static<typeof environmentContextSchema>;
 
+const webSearchSchema = Type.Object({
+  query: Type.String({ description: "Search query" }),
+  count: Type.Optional(Type.Number({ minimum: 1, maximum: 20, description: "Number of results to return (1–20, default 10)" })),
+});
+
+type WebSearchInput = Static<typeof webSearchSchema>;
+
+const fetchUrlSchema = Type.Object({
+  url: Type.String({ description: "The URL to fetch" }),
+});
+
+type FetchUrlInput = Static<typeof fetchUrlSchema>;
+
 const readFileSchema = Type.Object({
   path: Type.String({ description: "Path to the file to read, relative to the repository root" }),
   offset: Type.Optional(Type.Number({ description: "Line number to start reading from (1-indexed)" })),
@@ -36,6 +51,64 @@ type ReadFileInput = Static<typeof readFileSchema>;
 const MAX_LINES_DEFAULT = 2000;
 
 export function registerTools(pi: ExtensionAPI) {
+  pi.registerTool({
+    name: "forge_web_search",
+    label: "Forge Web Search",
+    description: "Search the web using the Brave Search API. Requires a BRAVE_API_KEY environment variable.",
+    promptSnippet: "Search the web for information using Brave Search",
+    promptGuidelines: [
+      "Use forge_web_search to find current information, documentation, package details, or any topic that benefits from a live web search.",
+      "Requires BRAVE_API_KEY to be set in the environment. If not set, the tool will return an error with setup instructions.",
+      "Prefer specific, targeted queries over broad ones. Use count to limit results when only a few are needed.",
+    ],
+    parameters: webSearchSchema,
+    async execute(_toolCallId, params: WebSearchInput, signal) {
+      const count = Math.min(20, Math.max(1, params.count ?? 10));
+      const result = await braveWebSearch(params.query, count, signal);
+      const lines = [
+        `Query: ${result.query}`,
+        `Results: ${result.results.length}`,
+        "",
+        ...result.results.map((r, i) =>
+          [`${i + 1}. ${r.title}`, `   URL: ${r.url}`, `   ${r.description}`].join("\n"),
+        ),
+      ];
+      return {
+        content: [{ type: "text", text: lines.join("\n") }],
+        details: result,
+      };
+    },
+  });
+
+  pi.registerTool({
+    name: "forge_fetch_url",
+    label: "Forge Fetch URL",
+    description: "Fetch the contents of a URL and return it as plain text. HTML is stripped to readable text. Content is capped at 512KB.",
+    promptSnippet: "Fetch and read the contents of a URL",
+    promptGuidelines: [
+      "Use forge_fetch_url to read a specific web page, documentation page, or API endpoint.",
+      "HTML is automatically stripped to plain text. For JSON APIs, content is returned as-is.",
+      "Content is capped at 512KB. If the page is large, the result will be truncated.",
+    ],
+    parameters: fetchUrlSchema,
+    async execute(_toolCallId, params: FetchUrlInput, signal) {
+      const result = await fetchUrl(params.url, signal);
+      const header = [
+        `URL: ${result.url}`,
+        `Status: ${result.statusCode}${result.ok ? "" : " (request failed)"}`,
+        `Content-Type: ${result.contentType}`,
+        result.truncated ? "(truncated at 512KB)" : "",
+        "",
+      ]
+        .filter((l) => l !== "")
+        .join("\n");
+      return {
+        content: [{ type: "text", text: `${header}\n${result.text}` }],
+        details: result,
+      };
+    },
+  });
+
   pi.registerTool({
     name: "forge_git_context",
     label: "Forge Git Context",
