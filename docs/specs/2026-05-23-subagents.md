@@ -60,6 +60,31 @@ Rules:
 - Do not suggest changes. Report what you find.
 ```
 
+Example research agent definition:
+
+```markdown
+---
+name: research
+description: Gather external context from web sources
+model: anthropic/claude-sonnet-4
+thinking: medium
+tools: forge_web_search, forge_fetch_url, bash
+timeout: 90000
+maxOutputBytes: 40000
+---
+
+You are a focused web researcher. Your job is to find relevant external
+information — documentation, API references, library usage, changelog entries,
+or community solutions — for a specific question.
+
+Rules:
+- Use forge_web_search to find sources, then forge_fetch_url to read them.
+- Prefer official documentation and primary sources over blog posts.
+- Be concise. Output a structured summary with source URLs.
+- Do not fabricate information. If you cannot find it, say so.
+- Do not modify any files.
+```
+
 ### 2. Agent loader: `src/extension/subagents/loader.ts`
 
 ```ts
@@ -123,8 +148,9 @@ Tools are limited by using `--no-extensions` and only granting built-in tools. T
 | `scout` | Map files, flows, entry points for a question | read, grep, find, ls, bash | No |
 | `reviewer` | Review code against a rubric | read, grep, find, ls | No |
 | `security` | Audit code for vulnerabilities | read, grep, find, ls, bash | No |
+| `research` | Gather external context from the web | forge_web_search, forge_fetch_url, bash | No |
 
-Start with three. Add more only when a concrete command needs them.
+Start with four. Add more only when a concrete command needs them.
 
 ### 5. Integration points
 
@@ -133,6 +159,7 @@ Commands that will use subagents (future work, not part of this spec's implement
 - `/review --deep` → spawn `reviewer` with the diff summary as task
 - `/security --deep` → spawn `security` with security-relevant file list as task
 - `/dev` → optionally spawn `scout` before planning when the goal touches unfamiliar code
+- `/research <question>` → spawn `research` to gather external docs, API references, or library usage patterns
 
 These integrations are separate changes after the runner is proven.
 
@@ -174,6 +201,7 @@ These integrations are separate changes after the runner is proven.
 - [ ] Create `src/extension/subagents/scout.md` — scout agent definition
 - [ ] Create `src/extension/subagents/reviewer.md` — reviewer agent definition
 - [ ] Create `src/extension/subagents/security.md` — security agent definition
+- [ ] Create `src/extension/subagents/research.md` — research agent definition
 - [ ] Add unit tests for loader and runner arg construction
 - [ ] Add integration test for real Pi process spawn with `--print`
 - [ ] Add smoke test for scout against a fixture repo
