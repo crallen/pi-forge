@@ -27,7 +27,28 @@ Good application UI usually wants one of these moves:
 
 Pick one dominant move per screen or component. Too many simultaneous design goals create muddled UI.
 
-## 3. Typography
+## 3. First-Draft Visual Defaults
+
+When local precedent is weak, choose a restrained application UI baseline rather than inventing decorative polish:
+
+- Create one clear focal path: title, primary content, primary action.
+- Use fewer containers with better grouping before adding more cards.
+- Let spacing and typography carry hierarchy before color, shadows, or icons.
+- Use neutral surfaces and reserve accent color for actions, status, or selection.
+- Keep borders and shadows consistent and purposeful; avoid stacking multiple surface treatments.
+- Give controls complete states on the first pass: default, hover, focus-visible, active/pressed, disabled, and loading when relevant.
+- Preserve layout stability while data loads; skeletons should approximate the loaded shape.
+- Make mobile behavior explicit, not just a shrunken desktop layout.
+
+React + Tailwind defaults when no stronger local convention exists:
+
+- Prefer theme utilities and existing component variants over arbitrary values.
+- Use `max-w-*`, `gap-*`, `space-y-*`, `grid`, `flex`, and responsive prefixes to establish rhythm.
+- Use `transition-colors` or `transition-opacity` for simple interaction feedback.
+- Use local focus-ring conventions, or a `focus-visible` ring equivalent for custom controls.
+- Avoid long class strings that hide repeated design decisions better captured by an existing primitive.
+
+## 4. Typography
 
 ### Good defaults
 
@@ -57,7 +78,7 @@ Pick one dominant move per screen or component. Too many simultaneous design goa
 | Label / metadata | Support scanning | Too small or too faint to read quickly |
 | Helper / hint text | Reduce uncertainty | Repeats the label without adding meaning |
 
-## 4. Color and Surfaces
+## 5. Color and Surfaces
 
 ### Good defaults
 
@@ -84,7 +105,7 @@ Pick one dominant move per screen or component. Too many simultaneous design goa
 - Avoid colored side-stripe borders on cards, alerts, or list items as a default accent treatment unless the product already relies on them.
 - Avoid pure-black/pure-white extremes when the existing system uses softened surfaces and text.
 
-## 5. Space and Layout
+## 6. Space and Layout
 
 ### Good defaults
 
@@ -113,7 +134,7 @@ Pick one dominant move per screen or component. Too many simultaneous design goa
 | Content feels disconnected | Tighten spacing inside groups, expand spacing between groups |
 | Everything looks equally important | Reduce accents, reduce title count, and create one focal path |
 
-## 6. Motion and Interaction Tone
+## 7. Motion and Interaction Tone
 
 ### Good defaults
 
@@ -140,7 +161,7 @@ Pick one dominant move per screen or component. Too many simultaneous design goa
 - [ ] Disabled controls still communicate intent and reason when needed
 - [ ] Loading states preserve layout stability where possible
 
-## 7. Copy and Feedback Tone
+## 8. Copy and Feedback Tone
 
 - Labels should reflect the real task, not internal implementation language.
 - Empty states should explain what happened and what to do next.
@@ -160,7 +181,7 @@ Pick one dominant move per screen or component. Too many simultaneous design goa
 - Empty states that are emotionally styled but instructionally useless
 - Toast spam for routine, low-risk actions
 
-## 8. Anti-Pattern Check
+## 9. Anti-Pattern Check
 
 For deeper smell detection and audit language, consult `reference/anti-patterns.md`.
 
@@ -171,7 +192,7 @@ If the UI still feels generic after implementation, ask which of these is missin
 3. less decorative clutter
 4. more explicit state handling
 
-## 9. Escalate Instead of Improvising
+## 10. Escalate Instead of Improvising
 
 Recommend broader spec/design clarification when:
 

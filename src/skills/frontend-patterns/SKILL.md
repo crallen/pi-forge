@@ -9,6 +9,7 @@ Use this capability for UI work: components, styling, accessibility, responsive 
 
 ## Non-Negotiables
 
+- **First draft must be production-shaped, not scaffolding.** Do not hand back bare happy-path UI that requires obvious follow-up passes for states, spacing, hierarchy, or interaction feedback.
 - **Reuse the existing visual system before inventing a new one.** New components are a tax on the design system.
 - **Avoid generic AI-polished UI.** The product has a tone. Match it. Don't ship a Tailwind dashboard when the product has its own personality.
 - **Cover the states that matter.** Loading. Empty. Error. Disabled. Focus. Success when relevant. Skipping states is a defect.
@@ -17,7 +18,7 @@ Use this capability for UI work: components, styling, accessibility, responsive 
 
 ## 1. Gather Context Before Touching JSX
 
-**First-response gate:** Do not write any component code in response to a vague UI request ("build me a dashboard," "add a settings page," "make it look better"). Before writing a line of JSX, you need answers to at least the first two questions below. Ask for what's missing; don't assume.
+**First-response gate:** Do not write any component code in response to a vague UI request ("build me a dashboard," "add a settings page," "make it look better"). Before writing a line of JSX, you need answers to at least the first two questions below. Ask for what's missing; don't assume. If local code provides the answers, inspect it and proceed with a production-shaped first draft rather than asking the user to design the obvious details.
 
 Questions that must be answered before implementing:
 
@@ -51,6 +52,8 @@ This skill has deeper reference material. Load only what the task needs — a bu
 
 | If the task is mainly about... | Read this reference |
 |---|---|
+| Production-shaped first drafts, baseline UI completeness, React + Tailwind quality defaults, or avoiding bare scaffolding | `reference/quality-bar.md` |
+| Common UI patterns such as forms, tables, settings, detail pages, dashboards, empty/error states, dialogs, or page shells | `reference/ui-recipes.md` |
 | Visual direction, hierarchy, typography, color, spacing, motion, interaction tone, or avoiding generic UI | `reference/design-direction.md` |
 | AI-slop smells, repeated UI mistakes, overused polish patterns, or what to avoid before refining a surface | `reference/anti-patterns.md` |
 | Component boundaries, state placement, extraction, forms, tables, lists, page shells, or composition | `reference/component-architecture.md` |
@@ -61,9 +64,10 @@ Common load sets:
 
 | Task shape | Typical references |
 |---|---|
-| Small component or form refinement | `reference/component-architecture.md` + `reference/accessibility-responsive.md` |
-| Visually weak or under-specified screen | `reference/design-direction.md` + the implementation reference that fits |
-| Complex screen update with meaningful UI behavior | `reference/component-architecture.md` + `reference/accessibility-responsive.md` + `reference/verification.md` |
+| Small component or form refinement | `reference/quality-bar.md` + `reference/component-architecture.md` + `reference/accessibility-responsive.md` |
+| New common UI surface | `reference/quality-bar.md` + `reference/ui-recipes.md` + `reference/design-direction.md` |
+| Visually weak or under-specified screen | `reference/quality-bar.md` + `reference/design-direction.md` + the implementation reference that fits |
+| Complex screen update with meaningful UI behavior | `reference/quality-bar.md` + `reference/component-architecture.md` + `reference/accessibility-responsive.md` + `reference/verification.md` |
 | Audit or critique of an existing surface | `reference/design-direction.md` + `reference/anti-patterns.md` + `reference/verification.md` |
 | Final pass before handoff | `reference/verification.md`, plus any missing design/accessibility reference |
 
@@ -98,6 +102,12 @@ Report which references you used when that would make the decision-making cleare
 - **Use design tokens** from the existing system: spacing, sizing, colors, typography. Avoid magic numbers.
 - **Avoid fragile layouts.** Flexbox or grid with explicit alignment. Position absolute is a tool of last resort, not a default.
 - **Don't hardcode pixel values** for fonts, spacing, or breakpoints when the system provides tokens.
+
+**React + Tailwind-specific** (when applicable):
+- Use existing primitives and variants before composing long one-off class strings.
+- Prefer mobile-first responsive classes and token-based utilities over arbitrary values.
+- Include state variants deliberately: `hover:`, `focus-visible:`, `active:`, `disabled:`, `aria-*`, and `data-*` when supported by local primitives.
+- Use subtle transitions for interaction feedback, but do not animate routine layout changes unless motion clarifies state.
 
 ## 7. Accessibility
 
