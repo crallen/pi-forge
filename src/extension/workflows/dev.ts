@@ -6,7 +6,7 @@ import { collectRepoMap } from "../context/repo-map.js";
 import { resolveRepositoryRoot } from "../context/repository-root.js";
 import { collectTestSummary } from "../context/test-summary.js";
 import { buildDevPrompt } from "../prompt-builders/dev-prompt.js";
-import { runSubagent } from "../subagents/index.js";
+import { runSubagentInMainArea } from "../subagents/index.js";
 import { appendWorkflowState, createWorkflowState, restoreActiveWorkflow, updateWorkflowState, workflowStatusText, type ForgeWorkflowState } from "./state.js";
 
 let activeWorkflow: ForgeWorkflowState | undefined;
@@ -109,17 +109,18 @@ export function registerDevCommand(pi: ExtensionAPI) {
 
       let scoutContext: string | undefined;
       if (promptGoal.trim()) {
-        if (ctx.hasUI) ctx.ui.setStatus("forge-subagent", "Running scout subagent…");
-        const result = await runSubagent({
-          agent: "scout",
-          task: `Map the codebase areas relevant to this goal:\n\n${promptGoal.slice(0, 4000)}`,
-          cwd: root,
-          signal: ctx.signal,
-        });
-        if (ctx.hasUI) ctx.ui.setStatus("forge-subagent", "");
-        if (result.output && !result.error) {
+        const result = await runSubagentInMainArea(
+          ctx,
+          {
+            agent: "scout",
+            task: `Map the codebase areas relevant to this goal:\n\n${promptGoal.slice(0, 4000)}`,
+            cwd: root,
+          },
+          "Running scout subagent…",
+        );
+        if (result && result.output && !result.error) {
           scoutContext = result.output;
-        } else if (result.error && ctx.hasUI) {
+        } else if (result?.error && ctx.hasUI) {
           ctx.ui.notify(`/dev: scout subagent failed (${result.error}) — continuing without reconnaissance`, "warning");
         }
       }

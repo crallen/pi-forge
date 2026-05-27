@@ -4,7 +4,7 @@ import { collectRepoMap } from "../context/repo-map.js";
 import { resolveRepositoryRoot } from "../context/repository-root.js";
 import { collectTestSummary } from "../context/test-summary.js";
 import { buildDeepSecurityPrompt, buildSecurityPrompt } from "../prompt-builders/security-prompt.js";
-import { runSubagent } from "../subagents/index.js";
+import { runSubagentInMainArea } from "../subagents/index.js";
 
 export function registerSecurityCommand(pi: ExtensionAPI) {
   pi.registerCommand("security", {
@@ -44,17 +44,14 @@ export function registerSecurityCommand(pi: ExtensionAPI) {
           parsedArgs.args ? `\nFocus area: ${parsedArgs.args}` : "",
         ].filter(Boolean).join("\n");
 
-        if (ctx.hasUI) ctx.ui.setStatus("forge-subagent", "Running security subagent…");
-        const result = await runSubagent({
-          agent: "security",
-          task,
-          cwd: root,
-          signal: ctx.signal,
-        });
-        if (ctx.hasUI) ctx.ui.setStatus("forge-subagent", "");
-        if (result.output && !result.error) {
+        const result = await runSubagentInMainArea(
+          ctx,
+          { agent: "security", task, cwd: root },
+          "Running security subagent…",
+        );
+        if (result && result.output && !result.error) {
           subagentFindings = result.output;
-        } else if (result.error && ctx.hasUI) {
+        } else if (result?.error && ctx.hasUI) {
           ctx.ui.notify(`/security: subagent failed (${result.error}) — continuing without deep findings`, "warning");
         }
       }

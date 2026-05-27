@@ -1,6 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { resolveRepositoryRoot } from "../context/repository-root.js";
-import { runSubagent } from "../subagents/index.js";
+import { runSubagentInMainArea } from "../subagents/index.js";
 
 export function registerResearchCommand(pi: ExtensionAPI) {
   pi.registerCommand("research", {
@@ -17,14 +17,16 @@ export function registerResearchCommand(pi: ExtensionAPI) {
 
       const cwd = await resolveRepositoryRoot(pi, ctx.cwd, ctx.signal);
 
-      if (ctx.hasUI) ctx.ui.setStatus("forge-subagent", "Running research subagent…");
-      const result = await runSubagent({
-        agent: "research",
-        task: question,
-        cwd,
-        signal: ctx.signal,
-      });
-      if (ctx.hasUI) ctx.ui.setStatus("forge-subagent", "");
+      const result = await runSubagentInMainArea(
+        ctx,
+        { agent: "research", task: question, cwd },
+        "Running research subagent…",
+      );
+
+      if (!result) {
+        if (ctx.hasUI) ctx.ui.notify("/research cancelled.", "info");
+        return;
+      }
 
       if (result.error) {
         const message = `/research: subagent failed (${result.error})${result.output ? `\n\nPartial output:\n${result.output}` : ""}`;
