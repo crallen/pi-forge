@@ -3,7 +3,6 @@ import { collectDependencyInventory } from "../context/dependency-inventory.js";
 import { collectGitReviewContext, parseReviewScope } from "../context/git-context.js";
 import { collectRepoMap } from "../context/repo-map.js";
 import { buildDeepReviewPrompt, buildReviewPrompt } from "../prompt-builders/review-prompt.js";
-import { runSubagentInMainArea } from "../subagents/index.js";
 
 export function registerReviewCommand(pi: ExtensionAPI) {
   let currentCwd = process.cwd();
@@ -57,29 +56,8 @@ export function registerReviewCommand(pi: ExtensionAPI) {
         ctx.ui.notify(`/review: context collection had errors — results may be incomplete:\n${errors.map((e) => `• ${e}`).join("\n")}`, "warning");
       }
 
-      let subagentFindings: string | undefined;
-      if (parsedArgs.deep && context.repoRoot) {
-        const diffSummary = context.sections.map((s) => s.diff).filter(Boolean).join("\n").slice(0, 20000);
-        if (diffSummary) {
-          const result = await runSubagentInMainArea(
-            ctx,
-            {
-              agent: "reviewer",
-              task: `Review these changes for correctness, security, and maintainability issues:\n\n${diffSummary}`,
-              cwd: context.repoRoot,
-            },
-            "Running reviewer subagent…",
-          );
-          if (result && result.output && !result.error) {
-            subagentFindings = result.output;
-          } else if (result?.error && ctx.hasUI) {
-            ctx.ui.notify(`/review: subagent failed (${result.error}) — continuing without deep findings`, "warning");
-          }
-        }
-      }
-
       const prompt = parsedArgs.deep && deepContext
-        ? buildDeepReviewPrompt(scope, context, deepContext[0], deepContext[1], subagentFindings)
+        ? buildDeepReviewPrompt(scope, context, deepContext[0], deepContext[1])
         : buildReviewPrompt(scope, context);
 
       if (!ctx.hasUI) {

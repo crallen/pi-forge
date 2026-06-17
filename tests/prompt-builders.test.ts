@@ -10,6 +10,7 @@ import { buildVerifyPrompt } from "../src/extension/prompt-builders/verify-promp
 import { buildSpecPrompt } from "../src/extension/prompt-builders/spec-prompt.js";
 import { buildCommitPrompt } from "../src/extension/prompt-builders/commit-prompt.js";
 import { buildPrPrompt } from "../src/extension/prompt-builders/pr-prompt.js";
+import { buildResearchPrompt } from "../src/extension/workflows/research.js";
 import type { GitReviewContext, ReviewScope } from "../src/extension/context/git-context.js";
 import type { RepoMap } from "../src/extension/context/repo-map.js";
 import type { DependencyInventory } from "../src/extension/context/dependency-inventory.js";
@@ -410,4 +411,16 @@ test("pr prompt: errors in context are surfaced", () => {
   const prompt = buildPrPrompt({ base: "main" }, makeGitContext({ errors: ["git diff failed"] }));
 
   assert.match(prompt, /git diff failed/);
+});
+
+// --- Research prompt ---
+
+test("research prompt: routes through parent web research workflow", () => {
+  const prompt = buildResearchPrompt("What is AbortController?");
+
+  assert.match(prompt, /\/skill:web-research/);
+  assert.match(prompt, /Question: What is AbortController\?/);
+  assert.match(prompt, /forge_web_search/);
+  assert.match(prompt, /forge_fetch_url/);
+  assert.doesNotMatch(prompt, /subagent/i);
 });

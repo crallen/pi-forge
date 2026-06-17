@@ -49,7 +49,6 @@ export function buildDeepReviewPrompt(
   context: GitReviewContext,
   repoMap: RepoMap,
   dependencyInventory: DependencyInventory,
-  subagentFindings?: string,
 ): string {
   const focus = scope.focus ? `\nAdditional review focus: ${scope.focus}\n` : "";
 
@@ -76,17 +75,7 @@ export function buildDeepReviewPrompt(
     formatRepoMap(repoMap),
     "",
     formatDependencyInventory(dependencyInventory),
-    subagentFindings ? formatSubagentFindings(subagentFindings) : "",
   ].filter(Boolean).join("\n");
-}
-
-function formatSubagentFindings(findings: string): string {
-  return section(
-    "Subagent Pre-Review Findings",
-    "A dedicated reviewer subagent inspected the diff independently. Use these findings as input — validate them against the source before including in your final output.",
-    "",
-    findings,
-  );
 }
 
 function shouldReviewCurrentState(scope: ReviewScope, context: GitReviewContext): boolean {

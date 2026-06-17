@@ -6,7 +6,6 @@ import { collectRepoMap } from "../context/repo-map.js";
 import { resolveRepositoryRoot } from "../context/repository-root.js";
 import { collectTestSummary } from "../context/test-summary.js";
 import { buildDevPrompt } from "../prompt-builders/dev-prompt.js";
-import { runSubagentInMainArea } from "../subagents/index.js";
 import { appendWorkflowState, createWorkflowState, restoreActiveWorkflow, updateWorkflowState, workflowStatusText, type ForgeWorkflowState } from "./state.js";
 
 let activeWorkflow: ForgeWorkflowState | undefined;
@@ -107,25 +106,7 @@ export function registerDevCommand(pi: ExtensionAPI) {
         ctx.ui.notify(`/dev: context collection had errors — results may be incomplete:\n${errors.map((error) => `• ${error}`).join("\n")}`, "warning");
       }
 
-      let scoutContext: string | undefined;
-      if (promptGoal.trim()) {
-        const result = await runSubagentInMainArea(
-          ctx,
-          {
-            agent: "scout",
-            task: `Map the codebase areas relevant to this goal:\n\n${promptGoal.slice(0, 4000)}`,
-            cwd: root,
-          },
-          "Running scout subagent…",
-        );
-        if (result && result.output && !result.error) {
-          scoutContext = result.output;
-        } else if (result?.error && ctx.hasUI) {
-          ctx.ui.notify(`/dev: scout subagent failed (${result.error}) — continuing without reconnaissance`, "warning");
-        }
-      }
-
-      const prompt = buildDevPrompt(promptGoal, environment, repoMap, dependencyInventory, testSummary, gitContext, scoutContext);
+      const prompt = buildDevPrompt(promptGoal, environment, repoMap, dependencyInventory, testSummary, gitContext);
       if (!ctx.hasUI) {
         console.log(prompt);
         return;

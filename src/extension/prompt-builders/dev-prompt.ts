@@ -12,7 +12,6 @@ export function buildDevPrompt(
   dependencyInventory: DependencyInventory,
   testSummary: TestSummary,
   gitContext: GitReviewContext,
-  scoutContext?: string,
 ): string {
   const requestedGoal = goal.trim() || "Continue guided development for the current repository state";
 
@@ -50,17 +49,7 @@ export function buildDevPrompt(
     formatTestSummary(testSummary),
     "",
     formatGitContext(gitContext),
-    scoutContext ? formatScoutContext(scoutContext) : "",
   ].filter(Boolean).join("\n");
-}
-
-function formatScoutContext(context: string): string {
-  return section(
-    "Scout Reconnaissance",
-    "A scout subagent mapped the codebase areas relevant to this goal. Use this as orientation — verify against the source before relying on it.",
-    "",
-    context,
-  );
 }
 
 function formatEnvironment(environment: EnvironmentContext): string {

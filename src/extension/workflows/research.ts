@@ -1,10 +1,8 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { resolveRepositoryRoot } from "../context/repository-root.js";
-import { runSubagentInMainArea } from "../subagents/index.js";
 
 export function registerResearchCommand(pi: ExtensionAPI) {
   pi.registerCommand("research", {
-    description: "Spawn a research subagent to gather external context for a question",
+    description: "Research a question using the parent agent and web tools",
 
     handler: async (args, ctx) => {
       const question = args.trim();
@@ -15,39 +13,7 @@ export function registerResearchCommand(pi: ExtensionAPI) {
         return;
       }
 
-      const cwd = await resolveRepositoryRoot(pi, ctx.cwd, ctx.signal);
-
-      const result = await runSubagentInMainArea(
-        ctx,
-        { agent: "research", task: question, cwd },
-        "Running research subagent…",
-      );
-
-      if (!result) {
-        if (ctx.hasUI) ctx.ui.notify("/research cancelled.", "info");
-        return;
-      }
-
-      if (result.error) {
-        const message = `/research: subagent failed (${result.error})${result.output ? `\n\nPartial output:\n${result.output}` : ""}`;
-        if (ctx.hasUI) {
-          ctx.ui.notify(message, "warning");
-        } else {
-          console.error(message);
-        }
-        return;
-      }
-
-      const prompt = [
-        "Here are research findings from a subagent that searched external sources for your question.",
-        "",
-        `**Question:** ${question}`,
-        "",
-        "## Research Findings",
-        "",
-        result.output,
-        result.truncated ? "\n(Output was truncated due to size limits.)" : "",
-      ].filter(Boolean).join("\n");
+      const prompt = buildResearchPrompt(question);
 
       if (!ctx.hasUI) {
         console.log(prompt);
@@ -58,8 +24,25 @@ export function registerResearchCommand(pi: ExtensionAPI) {
         pi.sendUserMessage(prompt);
       } catch {
         pi.sendUserMessage(prompt, { deliverAs: "followUp" });
-        ctx.ui.notify("Queued /research results for when the current turn finishes.", "info");
+        ctx.ui.notify("Queued /research for when the current turn finishes.", "info");
       }
     },
   });
+}
+
+export function buildResearchPrompt(question: string): string {
+  return [
+    "/skill:web-research",
+    "",
+    "Research the following question using the web-research workflow.",
+    "",
+    `Question: ${question}`,
+    "",
+    "Instructions:",
+    "- Use forge_web_search when discovery is needed, and forge_fetch_url for specific sources.",
+    "- Prefer official documentation, standards, primary sources, and project repositories over blog posts.",
+    "- Do not fabricate sources or claims. If the web tools are unavailable or evidence is insufficient, say so.",
+    "- Cite source URLs in the final answer.",
+    "- Keep the answer focused on the question.",
+  ].join("\n");
 }
